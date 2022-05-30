@@ -193,6 +193,6 @@ instance.update = effect(componentUpdateFn, {
 - - - 7.2.5.17 执行 `mounted 钩子`
 - - - 7.2.5.18 执行 `Entered 钩子`
 
-> 不知不觉就到深夜了，这就是组件初始化的全部流程，有了init的流程后，在后续的更新其实就是差一个 vue diff 算法啦😃😃😃
+> 这就是组件初始化的全部流程，有了init的流程后，在后续的更新其实就是差一个 vue diff 算法啦😃😃😃
 
 源代码地址： 
