@@ -582,4 +582,4 @@ console.log('oldNode', oldNode, 'newNode', newNode, '新节点和老节点都存
 
 ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/77d41a05ea1549bb92096fe6ab63c69c~tplv-k3u1fbpfcp-watermark.image?)
 
-> 更多详情，请查看源码
+> 更多详情，请查看[源码](https://github.com/cll123456/my-study/blob/master/my-vue3-code/3-comp-update/diff.js)
