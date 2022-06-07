@@ -30,6 +30,7 @@ export class EffectReactive {
     // 收集依赖
     shouldTrack = true;
     activeEffect = this;
+
     const result = this.fn();
 
     // 执行fn后停止收集依赖

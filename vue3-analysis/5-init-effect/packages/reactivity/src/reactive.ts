@@ -1,8 +1,6 @@
 import { track, trigger } from "./effect";
+import { isObj } from 'share'
 
-function isObj(obj) {
-  return typeof obj === 'object' && obj !== null && !Array.isArray(obj)
-}
 
 export function reactive(obj) {
   if (!isObj(obj)) return obj;
