@@ -1,0 +1,15 @@
+{
+  "name": "reactivity",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "share":"workspace:share@*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
