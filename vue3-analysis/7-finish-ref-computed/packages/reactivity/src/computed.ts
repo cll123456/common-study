@@ -1,5 +1,5 @@
 import { isFunction } from "share"
-import { EffectReactive, trackEffect, tracking, triggerEffect } from "./effect"
+import { EffectReactive, trackEffect, tracking, triggerEffect, } from "./effect"
 
 class ComputedRefImpl {
   private getter: any

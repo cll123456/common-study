@@ -1,5 +1,5 @@
 import { effect } from "../src/effect"
-import { reactive } from "../src/reactive"
+import { isReactive, reactive } from "../src/reactive"
 import { isRef, proxyRefs, ref, unRef } from "../src/ref"
 
 describe('ref', () => {
@@ -7,6 +7,20 @@ describe('ref', () => {
     const aRef = ref(1)
     // ref 会有一个value属性
     expect(aRef.value).toBe(1)
+
+    aRef.value = 2;
+    expect(aRef.value).toBe(2)
+  })
+
+  test('ref 处理对象', () => {
+    const aRef = ref({ a: 1, b: 2 })
+    // ref 会有一个value属性
+    expect(aRef.value.a).toBe(1)
+
+    expect(isReactive(aRef.value)).toBe(true)
+
+    aRef.value.b = 4;
+    expect(aRef.value.b).toBe(4)
   })
 
   test('ref 把数据变成响应式', () => {

@@ -11,6 +11,7 @@ describe('test computed', () => {
   })
 
   it('computed的结果有缓存并且不会被执行', () => {
+
     const value = reactive({})
     const getter = jest.fn(() => value.foo)
     const cValue = computed(getter)
