@@ -1,0 +1,14 @@
+{
+  "name": "share",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/share.cjs.js",
+  "module": "dist/share.esm-bundler.js",
+  "types": "dist/share.d.ts",
+  "scripts": {
+    "build": "rimraf dist && rollup -c"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
