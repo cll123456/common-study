@@ -7,8 +7,8 @@ const entry = [
 ]
 
 const external = [
-  // 'shared',
-  // 'reactivity'
+  'shared',
+  'reactivity'
 ]
 
 /**

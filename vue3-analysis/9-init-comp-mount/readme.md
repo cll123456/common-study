@@ -1,178 +1,273 @@
----
-theme: qklhk-chocolate
----
-# 引言
 
+
+# 引言
 <<往期回顾>>
 
 1.  [手写vue3源码——创建项目](https://juejin.cn/post/7104559841967865863 "https://juejin.cn/post/7104559841967865863")
 1.  [手写vue3源码——reactive, effect ,scheduler, stop](https://juejin.cn/post/7106335959930634254 "https://juejin.cn/post/7106335959930634254")
 1.  [手写vue3源码——readonly, isReactive,isReadonly, shallowReadonly](https://juejin.cn/post/7106689205069152263 "https://juejin.cn/post/7106689205069152263")
-4. [手写vue3源码——ref, computed](https://juejin.cn/post/7107231786895147015)
+1.  [手写vue3源码——ref, computed](https://juejin.cn/post/7107231786895147015 "https://juejin.cn/post/7107231786895147015")
+5. [vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495)
 
-本期咋们就先放一放源码，咋们如何打包monorepo应用，主要是源码看累了🤣🤣🤣，打包工具也是一门必须课，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/8-finish-build)
+接下来一起学习下，runtime-core里面的方法，本期主要实现的内容是，**通过createApp方法，到mount最后把咋们的dom给挂载成功!**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/9-init-comp-mount)
 
 # 效果
-为了提供大家的学习兴趣，咋们先来看看效果，准备发车，请系好安全带🚗🚗🚗
 
-![2022-06-12-17-01-37.gif](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/76597410da724935aeb581ffb1bfc1bd~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1df6d2a8f9564b78912863b8f42d82d9~tplv-k3u1fbpfcp-watermark.image?)
 
-## cjs 结果预览
+咋们需要使这个测试用例跑成功！,在图中可以发现，调用app传入了一个render函数，然后挂载，对比期望结果！
 
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ecd7ac2b7b42476cb4c9a392ec3ed086~tplv-k3u1fbpfcp-watermark.image?)
+# 测试dom
+思考再三，先把这一节先说了，**jest是怎么来测试dom的？**
 
-## esm 结果预览
+`jest`默认的环境是`node`，在`jest.config.js`中可以看到
 
-![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bd8a87f117fa4708a5142e43a26b8421~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a8cb4405c0854896a81116b137e9a911~tplv-k3u1fbpfcp-watermark.image?)
 
-## 声明文件预览
+**npm有在node中实现了浏览器环境的api的库**，[jsdom](https://www.npmjs.com/search?q=jsdom)、[happy-dom](https://www.npmjs.com/search?q=happy-dom) 等，咋们这里就使用比较轻的happy-dom，但是happy-dom里面与jest结合是一个子包——[@happy-dom/jest-environment](https://github.com/capricorn86/happy-dom/tree/master/packages/jest-environment),那就安装一下
 
-![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2c008742b3ed4b3fb9278561f92dbc34~tplv-k3u1fbpfcp-watermark.image?)
+
+```ts
+pnpm add @happy-dom/jest-environment -w -D
+```
+由于我项目示例使用的是monorepo,所以只需要在runtime-core中进行以下操作即可：
+
+ 在`jest.config.js`中修改环境
+
+```ts
+ testEnvironment: '@happy-dom/jest-environment',
+```
+
+然后你就可以在当前子包中使用正确运行测试用例了。
+
+## 小问题
+1. **全局的package.json运行的时候报错**，内容是没有dom环境
+2. **vscode 插件 jest自动运行失败**
+
+针对第一个问题，在上一节[vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495)中我们可以知道,在全局可以执行packages中的每一个脚本，同理，我们做以下操作：
+
+```ts
+// 在全局的package.json中的test修改成这句话
+ "test": "pnpm -r --filter=./packages/** run test",
+```
+那么就可以执行啦！
+
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7b1fcccc78f143b99b4cf4444caa92dc~tplv-k3u1fbpfcp-watermark.image?)
+
+第二个问题，这个是vscode的插件问题，我们可以重jest插件的文档入手，可以发现jest执行的时候，可以自定义脚本,解决办法如下：
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/292becc0f50e409f93c7400cf4b763bf~tplv-k3u1fbpfcp-watermark.image?)
+
+> 意思是说，jest自动执行的时候，直接执行我们项目的test脚本，由于第一个问题的解决，第二个问题也是ok的哦！🎉🎊
 
 # 正文
 
-`vue3`使用的是`rollup`来打包的，咋们也用`rollup`来打包咋们的应用，有不了解`rollup`的请[查看官网](https://rollupjs.org/guide/en/)，monorepo是多个单体仓库合并得到的，那么咋们就先来**打包单个仓库**，然后再来想办法怎么**一键打包全部**
+> 在正文之前，希望您先看过本系列文章的 [vue3 组件初始化流程](https://juejin.cn/post/7103537295537979399)，这里详细介绍了组件的初始化流程，这里主要是实现挂载
 
-
-## 打包shared
-在我项目中，shared仓库是相当与`utils`函数的集合，用于对外导出一些工具函数,那么咋们可以在本目录下的`package.json`中安装`rollup`。
-正当我就想在**shared目录下面安装rollup插件的时候**，我大脑给了个慢着的问号？
-
-
-
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f9e478d871d04c34b3a0a687cbce48a2~tplv-k3u1fbpfcp-watermark.image?)
-
-**monorepo 是不是可以在跟下面安装依赖，然后子包都可以共享**，基于这一特征。我毫不犹豫在根目录下面敲下了下面的命令：
-
-
-```ts
-pnpm add rollup -w -D
-```
-
-有了rollup,咋们是不是需要在打包的目录下面来搞个配置文件`rollup.config.js`，里面咋们写上**入口，出口,打包的格式**等
-
-
-```ts
-// 由于咋们需要打包成cjs, ems的格式，对外导出一个函数吧
-
-[
-  {
-    input: './src/index.ts',
-    output: {
-      file: 'dist/index.esm.js',
-      format: 'esm',
-    },
-  },
-  {
-    input: './src/index.ts',
-    output: {
-      file: 'dist/index.cjs.js',
-      format: 'cjs',
-    },
-  }
- ]
-```
-
-然后在本目录下的package.json中加入打包的命令：
-
-
-```ts
- "build": "rollup -c"
-```
-nice, 到这了就完了，咋们试一下，结果：
-
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a30283e2939a45bdb441e65678490009~tplv-k3u1fbpfcp-watermark.image?)
-
-> 分析错误可以发现，咋们是用了ts的语法，rollup无法转换ts的语法，需要使用插件了。😉😉😉
-
-那么rollup转换ts的插件也是有好多种，这里咋们用一个最快的那种，`esbuild`, `rollup-plugin-esbuild`
-
-```ts
-pnpm add esbuild rollup-plugin-esbuild -w -D
-```
-关于`rollup-plugin-esbuild`这个插件，官方的介绍是说：
-> [esbuild](https://github.com/evanw/esbuild) is by far one of the fastest TS/ESNext to ES6 compilers and minifier, this plugin replaces `rollup-plugin-typescript2`, `@rollup/plugin-typescript` and `rollup-plugin-terser` for you. 意思是说，这个插件是目前来说转换ts/esnext到es6是最快的编译和压缩，这个插件可以代替 `rollup-plugin-typescript2`, `@rollup/plugin-typescript` and `rollup-plugin-terser`的集合
-
-但是如果咋们需要打包非常低版本的代码，那就请查看[rollup 实战第三节 打包生产](https://juejin.cn/post/6988747504791584799)打包低版本的代码.
-
-言归正传，那么咋们把插件用上，在配置文件上加上插件
-
-
-```ts
-//... 省略其他
-plugins: [
-      esbuild({
-        target: 'node14',
-      }),
-    ]
-```
-
-再来一次🤩🤩🤩
-
-![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/398e557194134320b182065cea132110~tplv-k3u1fbpfcp-watermark.image?)
-
-通过结果，咋们可以看到已经打包成功了！🎉🎉🎉
-
-但是咋们是有ts的，肯定还需要生成咋们代码的类型吧，那就使用 `rollup-plugin-dts`这个来生成
+## 测试用例
 
 ```js
-pnpm add rollup-plugin-dts -w -D
+describe('apiCreateApp', () => {
+// 定义一个跟节点
+  let appElement: Element;
+  // 开始之前创建dom元素
+  beforeEach(() => {
+    appElement = document.createElement('div');
+    appElement.id = 'app';
+    document.body.appendChild(appElement);
+  });
+// 执行完测试后，情况html内部的内容
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  test('测试createApp,是否正确挂载', () => {
+  // 调用app方法，传入render函数
+    const app = createApp({
+      render() {
+        return h('div', {}, '123');
+      }
+    });
+    const appDoc = document.querySelector('#app')
+    // 调用mount函数
+    app.mount(appDoc);
+    expect(document.body.innerHTML).toBe('<div id="app"><div>123</div></div>');
+  })
+})
+
 ```
 
-> `rollup-plugin-dts`详情请[查看](https://www.npmjs.com/package/rollup-plugin-dts)
+## 流程图
+
+![vue3组件挂载流程图.drawio.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/74f36ca065054e24881d35d1db98fdc3~tplv-k3u1fbpfcp-watermark.image?)
+
+1. 一开始需要`createApp`,那咋们就给一个，并且返回一个mount函数
+```ts
+function createApp(rootComponent) {
+  const app = {
+    _component: rootComponent,
+    mount(container) {
+      const vnode = createVNode(rootComponent);
+      render(vnode, container);
+    }
+  };
+  return app;
+}
+```
+2. mount内部需要创建`vnode`的方法，咋们也给一个，并且把跟组件作为参数传入
+
+```ts
+function createVNode(type, props, children) {
+ // 一开始咋们就是这么简单，vnode里面有一个type,props，children这几个关键的函数
+  const vnode = {
+    type,
+    props: props || {},
+    children: children || []
+  };
+  return vnode;
+}
+```
+
+3. 需要render函数，咋们也来创建一个，**并且内容只调用了patch，咋把这两个一起创建**
 
 
 ```ts
-// 在数组后面在加上一项，
-{
-    input: './src/index.ts',
-    output: {
-      file: 'dist/index.dts',
-      format: 'esm',
-    },
-    plugins: [
-      dts(),
-    ],
-  },
+function render(vnode, container) {
+  patch(vnode, container);
+}
+
+function patch(vnode, container) {
+// patch需要判断vnode的type,如果是对象，则是处理组件，如果是字符串div,p等，则是处理元素
+  if (isObj(vnode.type)) {
+    processComponent(null, vnode, container);
+  } else if (String(vnode.type).length > 0) {
+    processElement(null, vnode, container);
+  }
+}
 ```
 
-然后就可以ok啦，咋们单个项目就完成了
-
-# 打包多个
-既然单个是这么写，那么其他的咋们是不是也可以写配置文件呢？对的，没错，可以在对应的单体项目下面写上`rollup.config.js`来对他们进行打包的配置
-
-然后咋们在跟目录下面的package.json中加入一行命令：
+4. 咋们先处理组件吧,创建一个`processComponent`函数
 
 ```ts
-"build": "pnpm -r --filter=./packages/** run build"
+// n1 是老节点，n2则是新节点，container是挂载的容器
+function processComponent(n1, n2, container) {
+// 如果n1不存在，直接是挂载组件
+  if (!n1) {
+    mountComponent(n2, container);
+  }
+}
 ```
-咋们来拆分下命令
-1. `pnpm -r` 等同于 `pnpm --recursive`，意思是说**在工作区的每个项目中运行命令，不包括根项目**，[详情查看](https://pnpm.io/zh/cli/recursive)
-2. ` --filter=./packages/**`意思是说，过滤其他文件和文件夹，**只使用packages下面的所有文件夹**
-3. `run build` 是 pnpm -r run build的后缀，执行package.json中的build指令,详情[请查看](https://pnpm.io/zh/filtering)
 
-合起来的意思是说，**依次执行packages里面所有文件夹的package.json的build命令**
+5. 创建`mountComponent`方法来挂载组件
 
+```ts
+function mountComponent(vnode, container) {
+  // 创建组件实例
+  const instance = createComponentInstance(vnode);
+  // 处理组件，初始化setup,slot，props， render等在实例的挂载
+  setupComponent(instance);
+  // 执行render函数
+  setupRenderEffect(instance, vnode, container);
+}
+```
+6. 创建组件的实例createComponentInstance
 
-# 优化
-通过上面的方式咋们就可以打包成功了，但是这里咋们还可以进行优化下，每一次打包dist结果都需要手动删除，咋们可以使用 `rimraf` 这个库来帮我们自动删除
+```ts
+// 是不是组件实例很简单，就只有一个vnode,props,
+function createComponentInstance(vnode) {
+  const instance = {
+    vnode,
+    props: {},
+    type: vnode.type
+  };
+  return instance;
+}
+```
+7. 处理组件的状态, 这个函数里面会比较多内容
+
+```ts
+function setupComponent(instance) {
+  const { props } = instance;
+  // 初始化props
+  initProps(instance, props);
+  // 处理组件的render函数
+  setupStatefulComponent(instance);
+}
+function setupStatefulComponent(instance) {
+  const Component = instance.type;
+  const { setup } = Component;
+  // 是否存在setup
+  if (setup) {
+    const setupResult = setup();
+    // 处理setup的结果
+    handleSetupResult(instance, setupResult);
+  }
+  // 完成render在instance中
+  finishComponentSetup(instance);
+}
+
+function handleSetupResult(instance, setupResult) {
+// 函数作为instance的render函数
+  if (isFunction(setupResult)) {
+    instance.render = setupResult;
+  } else if (isObj(setupResult)) {
+    instance.setupState = proxyRefs(setupResult);
+  }
+  finishComponentSetup(instance);
+}
+function finishComponentSetup(instance) {
+  const Component = instance.type;
+  // 如果没有的话，直接使用Component的render
+  if (!instance.render) {
+    instance.render = Component.render;
+  }
+}
+```
+
+8. 创建setupRenderEffect，执行实例的render函数
 
 
 ```ts
-pnpm add rimraf -d -W
+function setupRenderEffect(instance, vnode, container) {
+  const subtree = instance.render();
+  patch(subtree, container);
+}
 ```
 
-然后在每一个子包中修改build的命令
-
+9. 处理完组件，接下来该处理元素了 `processElement`
 
 ```ts
-"build": "rimraf dist && rollup -c"
+// 这个方法和processComponent一样
+function processElement(n1, n2, container) {
+// 需要判断是更新还是挂载
+  if (n1) ; else {
+    mountElement(n2, container);
+  }
+}
+```
+10. 挂载元素 `mountElement`
+
+```ts
+function mountElement(vnode, container) {
+// 创建根节点
+  const el = document.createElement(vnode.type);
+  const { props } = vnode;
+  // 挂载属性
+  for (let key in props) {
+    el.setAttribute(key, props[key]);
+  }
+  const children = vnode.children;
+  // 如果children是数组，继续patch
+  if (Array.isArray(children)) {
+    children.forEach((child) => {
+      patch(child, el);
+    });
+  } else if (String(children).length > 0) {
+    el.innerHTML = children;
+  }
+  // 把元素挂载到根节点
+  container.appendChild(el);
+}
 ```
 
-# 对比vue3打包
-这里可能有的人会说，vue3仓库都不是这么玩的，的确，vue3仓库的打包流程如下：
-
-
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/01be0711ba5449a59ab69037b3462a54~tplv-k3u1fbpfcp-watermark.image?)
-
-有兴趣的可以取看源码哈，这里给出流程图，想要使用这种方式的就自己实现哈！🎃🎃🎃
+> 恭喜，到这儿就完成本期的内容，重头看一下，**vue组件的挂载分为两种，处理组件和处理元素，最终回归到处理元素上面，最后实现节点的挂载**,该内容是经过非常多删减，只是为了实现一个基本挂载，还有许多的边界都没有完善，后续继续加油🐱‍👓🐱‍👓🐱‍👓
