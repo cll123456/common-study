@@ -1,0 +1,19 @@
+{
+  "name": "reactivity",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/reactivity.cjs.js",
+  "module": "dist/reactivity.esm-bundler.js",
+  "types": "dist/reactivity.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "rimraf dist && rollup -c"
+  },
+  "dependencies": {
+    "shared":"workspace:shared@*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
