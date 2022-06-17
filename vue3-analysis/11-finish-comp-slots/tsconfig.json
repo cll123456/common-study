@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "target": "es2016",
+    "useDefineForClassFields": false,
+    "declaration": true,
+    "inlineSourceMap": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "jsx": "preserve",
+    "lib": ["esnext", "dom"],
+    "types": ["jest", "node"],
+  },
+  "include": [
+    "packages/*/src",
+  ]
+}
