@@ -1,273 +1,443 @@
-
+---
+theme: qklhk-chocolate
+---
 
 # 引言
+
 <<往期回顾>>
 
-1.  [手写vue3源码——创建项目](https://juejin.cn/post/7104559841967865863 "https://juejin.cn/post/7104559841967865863")
-1.  [手写vue3源码——reactive, effect ,scheduler, stop](https://juejin.cn/post/7106335959930634254 "https://juejin.cn/post/7106335959930634254")
-1.  [手写vue3源码——readonly, isReactive,isReadonly, shallowReadonly](https://juejin.cn/post/7106689205069152263 "https://juejin.cn/post/7106689205069152263")
-1.  [手写vue3源码——ref, computed](https://juejin.cn/post/7107231786895147015 "https://juejin.cn/post/7107231786895147015")
-5. [vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495)
 
-接下来一起学习下，runtime-core里面的方法，本期主要实现的内容是，**通过createApp方法，到mount最后把咋们的dom给挂载成功!**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/9-init-comp-mount)
+1.  [vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495 "https://juejin.cn/post/7108325858489663495")
+2. [vue3源码分析——实现组件的挂载流程](https://juejin.cn/post/7109002484064419848)
 
-# 效果
+本期来实现，**setup里面使用props,父子组件通信props和emit等**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/10-finish-comp-props)
 
-![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1df6d2a8f9564b78912863b8f42d82d9~tplv-k3u1fbpfcp-watermark.image?)
+> 本期的内容与上一期的代码具有联动性，所以需要明白本期的内容，最后是先看下上期的内容哦！😃😃😃
 
-咋们需要使这个测试用例跑成功！,在图中可以发现，调用app传入了一个render函数，然后挂载，对比期望结果！
+# 实现render中的this
 
-# 测试dom
-思考再三，先把这一节先说了，**jest是怎么来测试dom的？**
-
-`jest`默认的环境是`node`，在`jest.config.js`中可以看到
-
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a8cb4405c0854896a81116b137e9a911~tplv-k3u1fbpfcp-watermark.image?)
-
-**npm有在node中实现了浏览器环境的api的库**，[jsdom](https://www.npmjs.com/search?q=jsdom)、[happy-dom](https://www.npmjs.com/search?q=happy-dom) 等，咋们这里就使用比较轻的happy-dom，但是happy-dom里面与jest结合是一个子包——[@happy-dom/jest-environment](https://github.com/capricorn86/happy-dom/tree/master/packages/jest-environment),那就安装一下
-
-
-```ts
-pnpm add @happy-dom/jest-environment -w -D
-```
-由于我项目示例使用的是monorepo,所以只需要在runtime-core中进行以下操作即可：
-
- 在`jest.config.js`中修改环境
-
-```ts
- testEnvironment: '@happy-dom/jest-environment',
-```
-
-然后你就可以在当前子包中使用正确运行测试用例了。
-
-## 小问题
-1. **全局的package.json运行的时候报错**，内容是没有dom环境
-2. **vscode 插件 jest自动运行失败**
-
-针对第一个问题，在上一节[vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495)中我们可以知道,在全局可以执行packages中的每一个脚本，同理，我们做以下操作：
-
-```ts
-// 在全局的package.json中的test修改成这句话
- "test": "pnpm -r --filter=./packages/** run test",
-```
-那么就可以执行啦！
-
-![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7b1fcccc78f143b99b4cf4444caa92dc~tplv-k3u1fbpfcp-watermark.image?)
-
-第二个问题，这个是vscode的插件问题，我们可以重jest插件的文档入手，可以发现jest执行的时候，可以自定义脚本,解决办法如下：
-
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/292becc0f50e409f93c7400cf4b763bf~tplv-k3u1fbpfcp-watermark.image?)
-
-> 意思是说，jest自动执行的时候，直接执行我们项目的test脚本，由于第一个问题的解决，第二个问题也是ok的哦！🎉🎊
-
-# 正文
-
-> 在正文之前，希望您先看过本系列文章的 [vue3 组件初始化流程](https://juejin.cn/post/7103537295537979399)，这里详细介绍了组件的初始化流程，这里主要是实现挂载
+在render函数中，**可以通过this,来访问setup返回的内容，还可以访问this.$el等**
 
 ## 测试用例
+由于是测试dom,jest需要提前注入下面的内容，让document里面有app节点，下面测试用例类似在html中定义一个app节点哦
+```ts
 
-```js
-describe('apiCreateApp', () => {
-// 定义一个跟节点
-  let appElement: Element;
-  // 开始之前创建dom元素
+let appElement: Element;
+
   beforeEach(() => {
     appElement = document.createElement('div');
     appElement.id = 'app';
     document.body.appendChild(appElement);
   });
-// 执行完测试后，情况html内部的内容
+
   afterEach(() => {
     document.body.innerHTML = '';
-  });
-
-  test('测试createApp,是否正确挂载', () => {
-  // 调用app方法，传入render函数
+  })
+```
+本功能的测试用例正式开始
+```ts
+test('实现代理对象，通过this来访问', () => {
+   let that;
     const app = createApp({
       render() {
-        return h('div', {}, '123');
+      // 在这里可以通过this来访问
+        that = this;
+        return h('div', { class: 'container' }, this.name);
+      },
+      setup() {
+        return {
+          name: '123'
+        }
       }
     });
     const appDoc = document.querySelector('#app')
-    // 调用mount函数
     app.mount(appDoc);
-    expect(document.body.innerHTML).toBe('<div id="app"><div>123</div></div>');
+    // 绑定值后的html
+    expect(document.body.innerHTML).toBe('<div id="app"><div class="container">123</div></div>');
+    
+     const elDom = document.querySelector('#container')
+    // el就是当前组件的真实dom
+    expect(that.$el).toBe(elDom);
   })
-})
-
 ```
 
-## 流程图
+## 分析
+上面的测试用例
+1. **setup返回是对象的时候，绑定到render的this上面**
+2. **$el则是获取的是当前组件的真实dom**
 
-![vue3组件挂载流程图.drawio.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/74f36ca065054e24881d35d1db98fdc3~tplv-k3u1fbpfcp-watermark.image?)
+解决这两个需求:
 
-1. 一开始需要`createApp`,那咋们就给一个，并且返回一个mount函数
+1. 需要在**render调用的时候，改变当前函数的this指向**,但是需要思考的一个问题是：**this是啥，它既要存在setup,也要存在el，咋们是不是可以用一个proxy来绑定呢？在哪里创建呢** 可以在处理组件状态`setupStatefulComponent`来完成改操作
+2. el则是在`mountElement`中挂载真实dom的时候，把当前的真实dom绑定在vnode当中
+
+## 编码
+针对上面的分析，需要在setupStatefulComponent中来创建proxy并且绑定到instance当中,并且setup的执行结果如果是对象，也已经存在instance中了，可以通过instance.setupState来进行获取
+
 ```ts
-function createApp(rootComponent) {
-  const app = {
-    _component: rootComponent,
-    mount(container) {
-      const vnode = createVNode(rootComponent);
-      render(vnode, container);
-    }
-  };
-  return app;
+function setupStatefulComponent(instance: any) {
+ instance.proxy = new Proxy({}, {
+     get(target, key){
+       // 判断当前的key是否存在于instance.setupState当中
+       if(key in instance.setupState){
+         return instance.setupState[key]
+       }
+     }
+ })
+ // ...省略其他
+}
+// 然后在setupRenderEffect调用render的时候，改变当前的this执行，执行为instance.proxy
+
+function setupRenderEffect(instance: any, vnode: any, container: any) {
+  // 获取到vnode的子组件,传入proxy进去
+  const { proxy } = instance
+
+  const subtree = instance.render.call(proxy)
+  // ...省略其他
 }
 ```
-2. mount内部需要创建`vnode`的方法，咋们也给一个，并且把跟组件作为参数传入
+通过上面的操作，从render中this.xxx获取setup返回对象的内容就ok了，接下来处理el
 
-```ts
-function createVNode(type, props, children) {
- // 一开始咋们就是这么简单，vnode里面有一个type,props，children这几个关键的函数
-  const vnode = {
-    type,
-    props: props || {},
-    children: children || []
-  };
-  return vnode;
-}
-```
-
-3. 需要render函数，咋们也来创建一个，**并且内容只调用了patch，咋把这两个一起创建**
+需要在mountElement中，创建节点的时候，在vnode中绑定下，el，并且在`setupStatefulComponent` 中的代理对象中判断当前的key
 
 
 ```ts
-function render(vnode, container) {
-  patch(vnode, container);
-}
-
-function patch(vnode, container) {
-// patch需要判断vnode的type,如果是对象，则是处理组件，如果是字符串div,p等，则是处理元素
-  if (isObj(vnode.type)) {
-    processComponent(null, vnode, container);
-  } else if (String(vnode.type).length > 0) {
-    processElement(null, vnode, container);
+// 代理对象进行修改
+ instance.proxy = new Proxy({}, {
+     get(target, key){
+       // 判断当前的key是否存在于instance.setupState当中
+       if(key in instance.setupState){
+         return instance.setupState[key]
+       }else if(key === '$el'){
+           return instance.vnode.el
+       }
+     }
+ })
+ 
+ // mount中需要在vnode中绑定el
+ 
+ function mountElement(vnode: any, container: any) {
+  // 创建元素
+  const el = document.createElement(vnode.type)
+  // 设置vnode的el
+  vnode.el = el
+  
+  //…… 省略其他
   }
+```
+
+看似没有问题吧，但是实际上是有问题的，请仔细思考一下，**mountElement是不是比setupStatefulComponent 后执行，setupStatefulComponent执行的时候，vnode.el不存在，后续mountelement的时候，vnode就会有值，那么上面的测试用例肯定是报错的，$el为null**
+
+解决这个问题的关键，mountElement的加载顺序是 `render -> patch -> mountElement`，并且render函数返回的subtree是一个vnode,改vnode中上面是mount的时候，已经赋值好了el,所以在patch后执行下操作
+
+```js
+
+function setupRenderEffect(instance: any, vnode: any, container: any) {
+  // 获取到vnode的子组件,传入proxy进去
+  const { proxy } = instance
+
+  const subtree = instance.render.call(proxy)
+  
+  patch(subtree, container)
+ // 赋值vnode.el,上面执行render的时候，vnode.el是null
+  vnode.el = subtree.el
 }
 ```
 
-4. 咋们先处理组件吧,创建一个`processComponent`函数
+> 至此，上面的测试用例就能ok通过啦！
+
+# 实现on+Event注册事件
+在vue中，可以使用`onEvent`来写事件，那么这个功能是怎么实现的呢，咋们一起来看看
+
+## 测试用例
 
 ```ts
-// n1 是老节点，n2则是新节点，container是挂载的容器
-function processComponent(n1, n2, container) {
-// 如果n1不存在，直接是挂载组件
-  if (!n1) {
-    mountComponent(n2, container);
-  }
-}
-```
-
-5. 创建`mountComponent`方法来挂载组件
-
-```ts
-function mountComponent(vnode, container) {
-  // 创建组件实例
-  const instance = createComponentInstance(vnode);
-  // 处理组件，初始化setup,slot，props， render等在实例的挂载
-  setupComponent(instance);
-  // 执行render函数
-  setupRenderEffect(instance, vnode, container);
-}
-```
-6. 创建组件的实例createComponentInstance
-
-```ts
-// 是不是组件实例很简单，就只有一个vnode,props,
-function createComponentInstance(vnode) {
-  const instance = {
-    vnode,
-    props: {},
-    type: vnode.type
-  };
-  return instance;
-}
-```
-7. 处理组件的状态, 这个函数里面会比较多内容
-
-```ts
-function setupComponent(instance) {
-  const { props } = instance;
-  // 初始化props
-  initProps(instance, props);
-  // 处理组件的render函数
-  setupStatefulComponent(instance);
-}
-function setupStatefulComponent(instance) {
-  const Component = instance.type;
-  const { setup } = Component;
-  // 是否存在setup
-  if (setup) {
-    const setupResult = setup();
-    // 处理setup的结果
-    handleSetupResult(instance, setupResult);
-  }
-  // 完成render在instance中
-  finishComponentSetup(instance);
-}
-
-function handleSetupResult(instance, setupResult) {
-// 函数作为instance的render函数
-  if (isFunction(setupResult)) {
-    instance.render = setupResult;
-  } else if (isObj(setupResult)) {
-    instance.setupState = proxyRefs(setupResult);
-  }
-  finishComponentSetup(instance);
-}
-function finishComponentSetup(instance) {
-  const Component = instance.type;
-  // 如果没有的话，直接使用Component的render
-  if (!instance.render) {
-    instance.render = Component.render;
-  }
-}
-```
-
-8. 创建setupRenderEffect，执行实例的render函数
-
-
-```ts
-function setupRenderEffect(instance, vnode, container) {
-  const subtree = instance.render();
-  patch(subtree, container);
-}
-```
-
-9. 处理完组件，接下来该处理元素了 `processElement`
-
-```ts
-// 这个方法和processComponent一样
-function processElement(n1, n2, container) {
-// 需要判断是更新还是挂载
-  if (n1) ; else {
-    mountElement(n2, container);
-  }
-}
-```
-10. 挂载元素 `mountElement`
-
-```ts
-function mountElement(vnode, container) {
-// 创建根节点
-  const el = document.createElement(vnode.type);
-  const { props } = vnode;
-  // 挂载属性
-  for (let key in props) {
-    el.setAttribute(key, props[key]);
-  }
-  const children = vnode.children;
-  // 如果children是数组，继续patch
-  if (Array.isArray(children)) {
-    children.forEach((child) => {
-      patch(child, el);
+  test('测试on绑定事件', () => {
+    let count = 0
+    console.log = jest.fn()
+    const app = createApp({
+      render() {
+        return h('div', {
+          class: 'container',
+          onClick() {
+            console.log('click')
+            count++
+          },
+          onFocus() {
+            count--
+            console.log(1)
+          }
+        }, '123');
+      }
     });
-  } else if (String(children).length > 0) {
-    el.innerHTML = children;
-  }
-  // 把元素挂载到根节点
-  container.appendChild(el);
-}
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc);
+    const container = document.querySelector('.container') as HTMLElement;
+    
+    // 调用click事件
+    container.click();
+    expect(console.log).toHaveBeenCalledTimes(1)
+
+    // 调用focus事件
+    container.focus();
+    expect(count).toBe(0)
+    expect(console.log).toHaveBeenCalledTimes(2)
+
+  })
 ```
 
-> 恭喜，到这儿就完成本期的内容，重头看一下，**vue组件的挂载分为两种，处理组件和处理元素，最终回归到处理元素上面，最后实现节点的挂载**,该内容是经过非常多删减，只是为了实现一个基本挂载，还有许多的边界都没有完善，后续继续加油🐱‍👓🐱‍👓🐱‍👓
+## 分析
+在本功能的测试用例中，可以分析以下内容：
+
+1. onEvent事件是在props中定义的
+2. 事件的格式必须是 on + Event的格式
+
+解决问题:
+
+这个功能比较简单，在处理prop中做个判断， 属性是否满足 `/^on[A-Z]/i`这个格式，如果是这个格式，则进行事件注册，但是vue3会做事件缓存，这个是怎么做到？
+
+缓存也好实现，在传入当前的el中增加一个属性` el._vei || (el._vei = {})` 存在这里，则直接使用，不能存在则创建并且存入缓存
+
+## 编码
+
+```ts
+在mountElement中增加处理事件的逻辑
+
+ const { props } = vnode
+  for (let key in props) {
+    // 判断key是否是on + 事件命，满足条件需要注册事件
+    const isOn = (p: string) => p.match(/^on[A-Z]/i)
+    if (isOn(key)) {
+      // 注册事件
+      el.addEventListener(key.slice(2).toLowerCase(), props[key])
+    }
+    // ... 其他逻辑
+    el.setAttribute(key, props[key])
+  }
+```
+
+事件处理就ok啦
+
+# 父子组件通信——props
+
+父子组件通信，在vue中是非常常见的，这里主要实现props与emit
+
+## 测试用例
+
+
+```ts
+ test('测试组件传递props', () => {
+    let tempProps;
+    console.warn = jest.fn()
+    const Foo = {
+      name: 'Foo',
+      render() {
+        // 2. 组件render里面可以直接使用props里面的值
+        return h('div', { class: 'foo' }, this.count);
+      },
+      setup(props) {
+        // 1. 此处可以拿到props
+        tempProps = props;
+
+        // 3. readonly props
+        props.count++
+      }
+    }
+
+    const app = createApp({
+      name: 'App',
+      render() {
+        return h('div', {
+          class: 'container',
+        }, [
+          h(Foo, { count: 1 }),
+          h('span', { class: 'span' }, '123')
+        ]);
+      }
+    });
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc);
+    // 验证功能1
+    expect(tempProps.count).toBe(1)
+
+    // 验证功能3，修改setup内部的props需要报错
+    expect(console.warn).toBeCalled()
+    expect(tempProps.count).toBe(1)
+
+    // 验证功能2，在render中可以直接使用this来访问props里面的内部属性
+    expect(document.body.innerHTML).toBe(`<div id="app"><div class="container"><div class="foo">1</div><span class="span">123</span></div></div>`)
+  })
+```
+
+## 分析
+根据上面的测试用例，分析props的以下内容：
+
+1. 父组件传递的参数，可以给到子组件的setup的第一个参数里面
+2. 在子组件的render函数中，可以使用this来访问props的值
+3. 在子组件中修改props会报错，不允许修改
+
+解决问题：
+
+问题1： 想要在子组件的setup函数中第一个参数，**使用props,那么在setup函数调用的时候，把当前组件的props传入到setup函数中即可**
+问题2： render中this想要问题，则在上面的那个代理中，在**加入一个判断，key是否在当前instance的props中**
+问题3： 修改报错，那就是只能读，可以使用以前实现的**api shallowReadonly来包裹一下**既可
+
+## 编码
+
+
+```ts
+1. 在setup函数调用的时候，传入instance.props之前，需要在实例上挂载props
+
+export function setupComponent(instance) {
+  // 获取props和children
+  const { props } = instance.vnode
+
+  // 处理props
+  instance.props = props || {}
+  
+  // ……省略其他
+ }
+ 
+ //2. 在setup中进行调用时作为参数赋值
+ function setupStatefulComponent(instance: any) {
+   // ……省略其他
+  // 获取组件的setup
+  const { setup } = Component;
+
+  if (setup) {
+    // 执行setup，并且获取到setup的结果,把props使用shallowReadonly进行包裹，则是只读,不能修改
+    const setupResult = setup(shallowReadonly(instance.props));
+
+   // …… 省略其他
+  }
+}
+
+// 3. 在propxy中在加入判断
+ instance.proxy = new Proxy({}, {
+     get(target, key){
+       // 判断当前的key是否存在于instance.setupState当中
+       if(key in instance.setupState){
+         return instance.setupState[key]
+       }else if(key in instance.props){
+          return instance.props[key]
+       }else if(key === '$el'){
+           return instance.vnode.el
+       }
+     }
+ })
+```
+
+做完之后，可以发现咋们的测试用例是运行没有毛病的😃😃😃
+
+# 组件通信——emit
+上面实现了props,那么emit也是少不了的，那么接下来就来实现下emit
+
+## 测试用例
+
+```ts
+test('测试组件emit', () => {
+    let count;
+    const Foo = {
+      name: 'Foo',
+      render() {
+        return h('div', { class: 'foo' }, this.count);
+      },
+      setup(props, { emit }) {
+        // 1. setup对象的第二个参数里面，可以结构出emit，并且是一个函数
+
+        // 2. emit 函数可以父组件传过来的事件
+        emit('click')
+
+        // 验证emit1，可以执行父组件的函数
+        expect(count.value).toBe(2)
+
+        // 3 emit 可以传递参数
+        emit('clickNum', 5)
+        // 验证emit传入参数
+        expect(count.value).toBe(7)
+        // 4 emit 可以使用—的模式
+        emit('click-num', -5)
+        expect(count.value).toBe(2)
+      }
+    }
+
+    const app = createApp({
+      name: 'App',
+      render() {
+        return h('div', {}, [
+          h(Foo, { onClick: this.click, onClickNum: this.clickNum, count: this.count })
+        ])
+      },
+      setup() {
+        const click = () => {
+          count.value++
+        }
+        count = ref(1)
+
+        const clickNum = (num) => {
+          count.value = Number(count.value) + Number(num)
+        }
+        return {
+          click,
+          clickNum,
+          count
+        }
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc);
+    // 验证挂载
+    expect(document.body.innerHTML).toBe(`<div id="app"><div><div class="foo">1</div></div></div>`)
+  })
+```
+
+## 分析
+根据上面的测试用例，可以分析出：
+1. emit 的参数是在父组件的props里面，并且是以 on + Event的形式
+1. emit 作为setup的第二个参数，并且可以结构出来使用
+2. emit 函数里面是触发事件的，事件名称，事件名称可以是小写，或者是 xxx-xxx的形式
+3. emit 函数的后续可以传入多个参数，作为父组件callback的参数
+
+解决办法：
+问题1： emit 是setup的第二个参数，**那么可以在setup函数调用的时候，传入第二个参数**
+问题2： 关于emit的第一个参数，**可以做条件判断，把xxx-xxx的形式转成xxxXxx的形式，然后加入on，最后在props中取找，存在则调用，不存在则不调用**
+问题3：emit的第二个参数，**则使用剩余参数即可**
+
+
+## 编码
+
+
+```ts
+// 1. 在setup函数执行的时候，传入第二个参数
+ const setupResult = setup(shallowReadonly(instance.props), { emit: instance.emit });
+
+// 2. 在setup中传入第二个参数的时候，还需要在实例上添加emit属性哦
+
+export function createComponentInstance(vnode) {
+  const instance = {
+    // ……其他属性
+    // emit函数
+    emit: () => { },
+  }
+  
+  
+
+  instance.emit = emit.bind(null, instance);
+  
+  function emit(instance, event, ...args) {
+      const { props } = instance
+      // 判断props里面是否有对应的事件，有的话执行，没有就不执行,处理emit的内容，详情请查看源码
+      const key = handlerName(capitalize(camize(event)))
+      const handler = props[key]
+      handler && handler(...args)
+  }
+
+  
+  return instance
+}
+
+
+```
+
+到此就圆满成功啦！🎉🎉🎉
