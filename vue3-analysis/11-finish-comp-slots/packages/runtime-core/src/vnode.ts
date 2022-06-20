@@ -1,6 +1,16 @@
 import { isObj, ShapeFlags } from "shared"
 
 /**
+ * Fragment 节点，用于处理slots
+ */
+export const Fragment = Symbol("Fragment")
+
+/**
+ * 文本节点用于处理文本
+ */
+export const Text = Symbol("Text")
+
+/**
  * 创建vnode
  * @param type 
  * @param props 
@@ -43,4 +53,14 @@ export function createVNode(type, props?, children?) {
 function getShapeFlag(type) {
   // 用于判断组件的类型,对象是组件，否则是元素组件
   return isObj(type) ? ShapeFlags.STATE_COMPONENT : ShapeFlags.ELEMENT
+}
+
+
+/**
+ * 
+ * @param text 创建一个文本节点
+ * @returns 
+ */
+export function createTextVNode(text) {
+  return createVNode(Text, null, text)
 }

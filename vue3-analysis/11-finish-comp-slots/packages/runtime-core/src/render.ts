@@ -1,5 +1,6 @@
 import { ShapeFlags, isOn } from "shared"
 import { createComponentInstance, setupComponent } from "./component"
+import { Fragment, Text } from "./vnode"
 
 /**
  * render函数
@@ -13,14 +14,44 @@ export function render(vnode, container) {
 
 
 export function patch(vnode, container) {
-  // 判断是处理组件，还是处理元素
-  if (vnode.shapeflag & ShapeFlags.STATE_COMPONENT) {
-    // 处理组件
-    processComponent(null, vnode, container)
-  } else if (vnode.shapeflag & ShapeFlags.ELEMENT) {
-    // 处理元素
-    processElement(null, vnode, container)
+  const { type } = vnode
+  switch (type) {
+    case Fragment:
+      // 处理slot中的fragment节点
+      processFragment(vnode, container)
+      break;
+    case Text:
+      processTextComponent(vnode, container)
+      break;
+    default:
+      // 判断是处理组件，还是处理元素
+      if (vnode.shapeflag & ShapeFlags.STATE_COMPONENT) {
+        // 处理组件
+        processComponent(null, vnode, container)
+      } else if (vnode.shapeflag & ShapeFlags.ELEMENT) {
+        // 处理元素
+        processElement(null, vnode, container)
+      }
+      break
   }
+
+}
+
+function processFragment(vnode: any, container: any) {
+  // 处理slot的元素，只需拿到他的children即可
+  mountChildren(vnode.children, container)
+}
+
+/**
+ * 处理文本节点
+ */
+function processTextComponent(vnode: any, container: any) {
+  // 创建文本节点
+  const el = document.createTextNode(vnode.children)
+  // 设置vnode的el
+  vnode.el = el
+  // 挂载文本节点
+  container.appendChild(el)
 }
 
 export function processComponent(n1, n2, container) {
@@ -107,3 +138,4 @@ function mountChildren(children, container) {
     patch(child, container)
   })
 }
+
