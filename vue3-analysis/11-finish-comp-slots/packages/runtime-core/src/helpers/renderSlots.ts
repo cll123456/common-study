@@ -10,5 +10,4 @@ export function renderSlots(slots, name = 'default', props = {}) {
     }
     return createVNode('div', {}, slot)
   }
-
 }

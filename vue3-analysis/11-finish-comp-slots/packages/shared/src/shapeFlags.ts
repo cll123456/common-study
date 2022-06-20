@@ -20,4 +20,8 @@ export const enum ShapeFlags {
    * 子组件 array children 1000 16
    */
   ARRAY_CHILDREN = 1 << 3,
+  /**
+   * 子组件是slot children 10000 32
+   */
+  SLOT_CHILDREN = 1 << 4,
 }

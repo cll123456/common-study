@@ -24,6 +24,18 @@ export function createVNode(type, props?, children?) {
   } else if (children && typeof String(children) === 'string') {
     vnode.shapeflag |= ShapeFlags.TEXT_CHILDREN
   }
+  // 判断插槽的属性
+  if (typeof children === "object") {
+    // 暂时主要是为了标识出 slots_children 这个类型来
+    // 暂时我们只有 element 类型和 component 类型的组件
+    // 所以我们这里除了 element ，那么只要是 component 的话，那么children 肯定就是 slots 了
+    if (vnode.shapeflag & ShapeFlags.ELEMENT) {
+      // 如果是 element 类型的话，那么 children 肯定不是 slots
+    } else {
+      // 这里就必然是 component 了,
+      vnode.shapeflag |= ShapeFlags.SLOT_CHILDREN;
+    }
+  }
   return vnode
 }
 
