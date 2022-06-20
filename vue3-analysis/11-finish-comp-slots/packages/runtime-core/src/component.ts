@@ -3,6 +3,7 @@ import { isFunction, isObj } from "shared"
 import { emit } from "./componentEmits"
 import { initProps } from "./componentProps"
 import { publicInstanceHandles } from "./componentPublicInstance"
+import { initSlots } from "./componentSlots"
 
 /**
  * 创建组件的实例
@@ -21,6 +22,8 @@ export function createComponentInstance(vnode) {
     proxy: null,
     // emit函数
     emit: () => { },
+    // 插槽
+    slots: {}
   }
 
   instance.emit = emit.bind(null, instance);
@@ -31,13 +34,13 @@ export function createComponentInstance(vnode) {
 
 export function setupComponent(instance) {
   // 获取props和children
-  const { props } = instance.vnode
+  const { props, children } = instance.vnode
 
   // 处理props
   initProps(instance, props)
 
   // 处理slots
-  // initSlots(instance, children)
+  initSlots(instance, children)
 
   // 处理setup
   setupStatefulComponent(instance);

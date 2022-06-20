@@ -3,6 +3,8 @@ import { isOwn } from "shared"
 const publicPropertiesMap = {
   // 返回当前组件的el
   $el: (instance) => instance.vnode.el,
+  // 返回当前组件的slots
+  $slots: (instance) => instance.slots
 }
 
 export const publicInstanceHandles = {
