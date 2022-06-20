@@ -1,443 +1,303 @@
----
-theme: qklhk-chocolate
----
+  
 
-# 引言
+引言
+--
 
 <<往期回顾>>
 
-
 1.  [vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495 "https://juejin.cn/post/7108325858489663495")
-2. [vue3源码分析——实现组件的挂载流程](https://juejin.cn/post/7109002484064419848)
+2.  [vue3源码分析——实现组件的挂载流程](https://juejin.cn/post/7109002484064419848 "https://juejin.cn/post/7109002484064419848")
+3.  [vue3源码分析——实现props,emit，事件处理等](https://juejin.cn/post/7110133885140221989 "https://juejin.cn/post/7110133885140221989")
 
-本期来实现，**setup里面使用props,父子组件通信props和emit等**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/10-finish-comp-props)
+本期来实现， **slot——插槽，分为普通插槽，具名插槽，作用域插槽**，所有的[源码请查看](https://link.juejin.cn/?target=https%3A%2F%2Fgithub.com%2Fcll123456%2Fcommon-study%2Ftree%2Fmaster%2Fvue3-analysis%2F11-finish-comp-slots "https://github.com/cll123456/common-study/tree/master/vue3-analysis/11-finish-comp-slots")
 
-> 本期的内容与上一期的代码具有联动性，所以需要明白本期的内容，最后是先看下上期的内容哦！😃😃😃
+正文
+--
 
-# 实现render中的this
+在 模板中使用插槽的方式如下：
 
-在render函数中，**可以通过this,来访问setup返回的内容，还可以访问this.$el等**
+```
+<todo-button>
+  Add todo
+</todo-button>
+复制代码
+```
 
-## 测试用例
-由于是测试dom,jest需要提前注入下面的内容，让document里面有app节点，下面测试用例类似在html中定义一个app节点哦
-```ts
+在`template`中的内容最终会被`complie`成**render函数，render函数里面会调用h函数转化成vnode**，在vnode的使用方法如下：
 
-let appElement: Element;
+```
+render() {
+    return h(TodoButton, {}, this.$slots.default)
+  },
+复制代码
+```
 
+看完slots的基本用法，一起来实现个slots,方便自己理解slots的原理哦！😀😀😀
+
+实现基本的用法
+-------
+
+使用**slots的地方是this.slots，并且调用的属性是default,那么slots，并且调用的属性是default,那么slots则是一个对象，对象里面有插槽的名称，如果使用者没有传递，则可以通过default来进行访问**。
+
+### 测试用例
+
+> attention！！！ 由于测试的是dom,需要先写入html等，在这里需要先创建对应的节点
+
+```
+ let appElement: Element;
   beforeEach(() => {
     appElement = document.createElement('div');
     appElement.id = 'app';
     document.body.appendChild(appElement);
-  });
-
+  })
   afterEach(() => {
     document.body.innerHTML = '';
   })
-```
-本功能的测试用例正式开始
-```ts
-test('实现代理对象，通过this来访问', () => {
-   let that;
-    const app = createApp({
-      render() {
-      // 在这里可以通过this来访问
-        that = this;
-        return h('div', { class: 'container' }, this.name);
-      },
-      setup() {
-        return {
-          name: '123'
-        }
-      }
-    });
-    const appDoc = document.querySelector('#app')
-    app.mount(appDoc);
-    // 绑定值后的html
-    expect(document.body.innerHTML).toBe('<div id="app"><div class="container">123</div></div>');
-    
-     const elDom = document.querySelector('#container')
-    // el就是当前组件的真实dom
-    expect(that.$el).toBe(elDom);
-  })
+复制代码
 ```
 
-## 分析
-上面的测试用例
-1. **setup返回是对象的时候，绑定到render的this上面**
-2. **$el则是获取的是当前组件的真实dom**
+本案例的测试正式开始
 
-解决这两个需求:
-
-1. 需要在**render调用的时候，改变当前函数的this指向**,但是需要思考的一个问题是：**this是啥，它既要存在setup,也要存在el，咋们是不是可以用一个proxy来绑定呢？在哪里创建呢** 可以在处理组件状态`setupStatefulComponent`来完成改操作
-2. el则是在`mountElement`中挂载真实dom的时候，把当前的真实dom绑定在vnode当中
-
-## 编码
-针对上面的分析，需要在setupStatefulComponent中来创建proxy并且绑定到instance当中,并且setup的执行结果如果是对象，也已经存在instance中了，可以通过instance.setupState来进行获取
-
-```ts
-function setupStatefulComponent(instance: any) {
- instance.proxy = new Proxy({}, {
-     get(target, key){
-       // 判断当前的key是否存在于instance.setupState当中
-       if(key in instance.setupState){
-         return instance.setupState[key]
-       }
-     }
- })
- // ...省略其他
-}
-// 然后在setupRenderEffect调用render的时候，改变当前的this执行，执行为instance.proxy
-
-function setupRenderEffect(instance: any, vnode: any, container: any) {
-  // 获取到vnode的子组件,传入proxy进去
-  const { proxy } = instance
-
-  const subtree = instance.render.call(proxy)
-  // ...省略其他
-}
 ```
-通过上面的操作，从render中this.xxx获取setup返回对象的内容就ok了，接下来处理el
-
-需要在mountElement中，创建节点的时候，在vnode中绑定下，el，并且在`setupStatefulComponent` 中的代理对象中判断当前的key
-
-
-```ts
-// 代理对象进行修改
- instance.proxy = new Proxy({}, {
-     get(target, key){
-       // 判断当前的key是否存在于instance.setupState当中
-       if(key in instance.setupState){
-         return instance.setupState[key]
-       }else if(key === '$el'){
-           return instance.vnode.el
-       }
-     }
- })
- 
- // mount中需要在vnode中绑定el
- 
- function mountElement(vnode: any, container: any) {
-  // 创建元素
-  const el = document.createElement(vnode.type)
-  // 设置vnode的el
-  vnode.el = el
-  
-  //…… 省略其他
-  }
-```
-
-看似没有问题吧，但是实际上是有问题的，请仔细思考一下，**mountElement是不是比setupStatefulComponent 后执行，setupStatefulComponent执行的时候，vnode.el不存在，后续mountelement的时候，vnode就会有值，那么上面的测试用例肯定是报错的，$el为null**
-
-解决这个问题的关键，mountElement的加载顺序是 `render -> patch -> mountElement`，并且render函数返回的subtree是一个vnode,改vnode中上面是mount的时候，已经赋值好了el,所以在patch后执行下操作
-
-```js
-
-function setupRenderEffect(instance: any, vnode: any, container: any) {
-  // 获取到vnode的子组件,传入proxy进去
-  const { proxy } = instance
-
-  const subtree = instance.render.call(proxy)
-  
-  patch(subtree, container)
- // 赋值vnode.el,上面执行render的时候，vnode.el是null
-  vnode.el = subtree.el
-}
-```
-
-> 至此，上面的测试用例就能ok通过啦！
-
-# 实现on+Event注册事件
-在vue中，可以使用`onEvent`来写事件，那么这个功能是怎么实现的呢，咋们一起来看看
-
-## 测试用例
-
-```ts
-  test('测试on绑定事件', () => {
-    let count = 0
-    console.log = jest.fn()
-    const app = createApp({
-      render() {
-        return h('div', {
-          class: 'container',
-          onClick() {
-            console.log('click')
-            count++
-          },
-          onFocus() {
-            count--
-            console.log(1)
-          }
-        }, '123');
-      }
-    });
-    const appDoc = document.querySelector('#app')
-    app.mount(appDoc);
-    const container = document.querySelector('.container') as HTMLElement;
-    
-    // 调用click事件
-    container.click();
-    expect(console.log).toHaveBeenCalledTimes(1)
-
-    // 调用focus事件
-    container.focus();
-    expect(count).toBe(0)
-    expect(console.log).toHaveBeenCalledTimes(2)
-
-  })
-```
-
-## 分析
-在本功能的测试用例中，可以分析以下内容：
-
-1. onEvent事件是在props中定义的
-2. 事件的格式必须是 on + Event的格式
-
-解决问题:
-
-这个功能比较简单，在处理prop中做个判断， 属性是否满足 `/^on[A-Z]/i`这个格式，如果是这个格式，则进行事件注册，但是vue3会做事件缓存，这个是怎么做到？
-
-缓存也好实现，在传入当前的el中增加一个属性` el._vei || (el._vei = {})` 存在这里，则直接使用，不能存在则创建并且存入缓存
-
-## 编码
-
-```ts
-在mountElement中增加处理事件的逻辑
-
- const { props } = vnode
-  for (let key in props) {
-    // 判断key是否是on + 事件命，满足条件需要注册事件
-    const isOn = (p: string) => p.match(/^on[A-Z]/i)
-    if (isOn(key)) {
-      // 注册事件
-      el.addEventListener(key.slice(2).toLowerCase(), props[key])
-    }
-    // ... 其他逻辑
-    el.setAttribute(key, props[key])
-  }
-```
-
-事件处理就ok啦
-
-# 父子组件通信——props
-
-父子组件通信，在vue中是非常常见的，这里主要实现props与emit
-
-## 测试用例
-
-
-```ts
- test('测试组件传递props', () => {
-    let tempProps;
-    console.warn = jest.fn()
+ test('test basic slots', () => {
+ // 子组件Foo
     const Foo = {
       name: 'Foo',
       render() {
-        // 2. 组件render里面可以直接使用props里面的值
-        return h('div', { class: 'foo' }, this.count);
-      },
-      setup(props) {
-        // 1. 此处可以拿到props
-        tempProps = props;
-
-        // 3. readonly props
-        props.count++
+        return h('div', { class: 'foo' }, [h('p', {}, this.count), renderSlots(this.$slots)]);
       }
     }
 
     const app = createApp({
-      name: 'App',
       render() {
-        return h('div', {
-          class: 'container',
-        }, [
-          h(Foo, { count: 1 }),
-          h('span', { class: 'span' }, '123')
-        ]);
-      }
-    });
-    const appDoc = document.querySelector('#app')
-    app.mount(appDoc);
-    // 验证功能1
-    expect(tempProps.count).toBe(1)
-
-    // 验证功能3，修改setup内部的props需要报错
-    expect(console.warn).toBeCalled()
-    expect(tempProps.count).toBe(1)
-
-    // 验证功能2，在render中可以直接使用this来访问props里面的内部属性
-    expect(document.body.innerHTML).toBe(`<div id="app"><div class="container"><div class="foo">1</div><span class="span">123</span></div></div>`)
-  })
-```
-
-## 分析
-根据上面的测试用例，分析props的以下内容：
-
-1. 父组件传递的参数，可以给到子组件的setup的第一个参数里面
-2. 在子组件的render函数中，可以使用this来访问props的值
-3. 在子组件中修改props会报错，不允许修改
-
-解决问题：
-
-问题1： 想要在子组件的setup函数中第一个参数，**使用props,那么在setup函数调用的时候，把当前组件的props传入到setup函数中即可**
-问题2： render中this想要问题，则在上面的那个代理中，在**加入一个判断，key是否在当前instance的props中**
-问题3： 修改报错，那就是只能读，可以使用以前实现的**api shallowReadonly来包裹一下**既可
-
-## 编码
-
-
-```ts
-1. 在setup函数调用的时候，传入instance.props之前，需要在实例上挂载props
-
-export function setupComponent(instance) {
-  // 获取props和children
-  const { props } = instance.vnode
-
-  // 处理props
-  instance.props = props || {}
-  
-  // ……省略其他
- }
- 
- //2. 在setup中进行调用时作为参数赋值
- function setupStatefulComponent(instance: any) {
-   // ……省略其他
-  // 获取组件的setup
-  const { setup } = Component;
-
-  if (setup) {
-    // 执行setup，并且获取到setup的结果,把props使用shallowReadonly进行包裹，则是只读,不能修改
-    const setupResult = setup(shallowReadonly(instance.props));
-
-   // …… 省略其他
-  }
-}
-
-// 3. 在propxy中在加入判断
- instance.proxy = new Proxy({}, {
-     get(target, key){
-       // 判断当前的key是否存在于instance.setupState当中
-       if(key in instance.setupState){
-         return instance.setupState[key]
-       }else if(key in instance.props){
-          return instance.props[key]
-       }else if(key === '$el'){
-           return instance.vnode.el
-       }
-     }
- })
-```
-
-做完之后，可以发现咋们的测试用例是运行没有毛病的😃😃😃
-
-# 组件通信——emit
-上面实现了props,那么emit也是少不了的，那么接下来就来实现下emit
-
-## 测试用例
-
-```ts
-test('测试组件emit', () => {
-    let count;
-    const Foo = {
-      name: 'Foo',
-      render() {
-        return h('div', { class: 'foo' }, this.count);
-      },
-      setup(props, { emit }) {
-        // 1. setup对象的第二个参数里面，可以结构出emit，并且是一个函数
-
-        // 2. emit 函数可以父组件传过来的事件
-        emit('click')
-
-        // 验证emit1，可以执行父组件的函数
-        expect(count.value).toBe(2)
-
-        // 3 emit 可以传递参数
-        emit('clickNum', 5)
-        // 验证emit传入参数
-        expect(count.value).toBe(7)
-        // 4 emit 可以使用—的模式
-        emit('click-num', -5)
-        expect(count.value).toBe(2)
-      }
-    }
-
-    const app = createApp({
-      name: 'App',
-      render() {
-        return h('div', {}, [
-          h(Foo, { onClick: this.click, onClickNum: this.clickNum, count: this.count })
+        return h('div', { class: 'container' }, [
+          h(Foo, { count: 1 }, { default: h('div', { class: 'slot' }, 'slot1') }),
+          h(Foo, { count: 2 }, { default: [h('p', { class: 'slot' }, 'slot2'), h('p', { class: 'slot' }, 'slot2')] }),
         ])
-      },
-      setup() {
-        const click = () => {
-          count.value++
-        }
-        count = ref(1)
-
-        const clickNum = (num) => {
-          count.value = Number(count.value) + Number(num)
-        }
-        return {
-          click,
-          clickNum,
-          count
-        }
       }
     })
 
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
-    // 验证挂载
-    expect(document.body.innerHTML).toBe(`<div id="app"><div><div class="foo">1</div></div></div>`)
+    // 测试挂载的内容是否正确
+    const container = document.querySelector('.container') as HTMLElement;
+    expect(container.innerHTML).toBe('<div class="foo"><p>1</p><div><div class="slot">slot1</div></div></div><div class="foo"><p>2</p><div><p class="slot">slot2</p><p class="slot">slot2</p></div></div>'
+    )
   })
+复制代码
 ```
 
-## 分析
-根据上面的测试用例，可以分析出：
-1. emit 的参数是在父组件的props里面，并且是以 on + Event的形式
-1. emit 作为setup的第二个参数，并且可以结构出来使用
-2. emit 函数里面是触发事件的，事件名称，事件名称可以是小写，或者是 xxx-xxx的形式
-3. emit 函数的后续可以传入多个参数，作为父组件callback的参数
+### 需求分析
 
-解决办法：
-问题1： emit 是setup的第二个参数，**那么可以在setup函数调用的时候，传入第二个参数**
-问题2： 关于emit的第一个参数，**可以做条件判断，把xxx-xxx的形式转成xxxXxx的形式，然后加入on，最后在props中取找，存在则调用，不存在则不调用**
-问题3：emit的第二个参数，**则使用剩余参数即可**
+通过上面的测试用例，可以分析以下内容：
 
+1.  父组件使用子组件传入插槽的方式是在h的**第三个参数，并且传入的是一个对象，value的值可以是对象，或者是数组**
+2.  子组件中使用插槽的时候，是**在this.$slots中获取的**
+3.  并且还实现了**一个renderSlot的方法，renderSlot是将this.$slots调用h转变为vnode**
 
-## 编码
+问题解决：
 
+1.  需要在绑定在this上面，那就在`setupStatefulComponent`函数代理中加入判断，传入的`$slots` ;
+2.  判断`$slot`是否在组件的代理中，然后代理需要把**slots绑定在instance上面**并且绑定值的时候需要把**传入的对象统一转成数组**;
+3.  `renderSlot`方法调用了`h函数`，把一个数据转成vnode
 
-```ts
-// 1. 在setup函数执行的时候，传入第二个参数
- const setupResult = setup(shallowReadonly(instance.props), { emit: instance.emit });
+### 编码实现
 
-// 2. 在setup中传入第二个参数的时候，还需要在实例上添加emit属性哦
-
-export function createComponentInstance(vnode) {
-  const instance = {
-    // ……其他属性
-    // emit函数
-    emit: () => { },
-  }
-  
-  
-
-  instance.emit = emit.bind(null, instance);
-  
-  function emit(instance, event, ...args) {
-      const { props } = instance
-      // 判断props里面是否有对应的事件，有的话执行，没有就不执行,处理emit的内容，详情请查看源码
-      const key = handlerName(capitalize(camize(event)))
-      const handler = props[key]
-      handler && handler(...args)
-  }
-
-  
-  return instance
+```
+// 需要把$slots绑定在this上面，那就需要在代理里面在加入一个判断即可
+function setupStatefulComponent(instance: any) {
+  // 代理组件的上下文
+  instance.proxy = new Proxy({  }, {
+      get(target,key){
+       // 省略其他
+       else if(key in instance.slots){
+         return instance.slots[key]
+       }
+      }
+  })
 }
 
+// 接下里在instance上面加上slots属性
+export function setupComponent(instance) {
+  // 获取props和children
+  const { props, children } = instance.vnode
 
+  // 处理props
+  
+  const slots = {}
+  for (const key in children) {
+      slots[key] = Array.isArray(children[key]) ? children[key] : [children[key]]
+  }
+  instance.slots = slots
+  
+  // ……省略其他
+  }
+  
+  // 最后还需要使用renderSlot函数
+  export function renderSlots(slots) {
+    const slot = slots['default']
+       if (slot) {
+        return createVNode('div', {}, slot)
+      }
+}
+复制代码
 ```
 
-到此就圆满成功啦！🎉🎉🎉
+通过上面的编码，测试用例就可以完美通关啦
+
+具名插槽
+----
+
+具名插槽就是，插槽除了可以有多个，并且除了default外，可以加入其他的名字，具体请看测试用例
+
+### 测试用例
+
+```
+ test('测试具名插槽', () => {
+    const Foo = {
+      name: 'Foo',
+      render() {
+        return h('div', { class: 'foo' },
+          [
+            renderSlots(this.$slots, 'header'),
+            h('div', { class: 'default' }, 'default'),
+            renderSlots(this.$slots, 'footer')
+          ]
+        );
+      }
+    }
+
+    const app = createApp({
+      name: 'App',
+      render() {
+        return h('div', { class: 'container' }, [h(Foo, {}, {
+          header: h('h1', {}, 'header'),
+          footer: h('p', {}, 'footer')
+        })])
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc);
+
+    const container = document.querySelector('.container') as HTMLElement
+
+    expect(container.innerHTML).toBe('<div class=\"foo\"><div><h1>header</h1></div><div class=\"default\">default</div><div><p>footer</p></div></div>')
+  })
+复制代码
+```
+
+### 分析
+
+通过上面测试用例，发现以下内容：
+
+1.  `renderSlot`传入第二个参数，然后可以获取对于的slots
+
+问题解决
+
+直接在renderSlot里面传入第二个参数即可
+
+### 编码
+
+```
+  // 最后还需要使用renderSlot函数
+  export function renderSlots(slots, name = 'default') {
+    const slot = slots[name]
+       if (slot) {
+        return createVNode('div', {}, slot)
+      }
+}
+复制代码
+```
+
+> 这一步是不是比较简单，相对起前面来说，正所谓，前面考虑好了，后面就舒服，接下来实现作用域插槽
+
+作用域插槽
+-----
+
+作用域插槽是，**每个slot里面可以传入数据，数据只在当前的slot有效**，具体请看测试用例
+
+### 测试用例
+
+```
+test('测试作用域插槽', () => {
+    const Foo = {
+      name: 'Foo',
+      render() {
+        return h('div', { class: 'foo' },
+          [
+            renderSlots(this.$slots, 'header', { children: 'foo' }),
+            h('div', { class: 'default' }, 'default'),
+            renderSlots(this.$slots, 'footer')
+          ]
+        );
+      }
+    }
+
+    const app = createApp({
+      name: 'App',
+      render() {
+        return h('div', { class: 'container' }, [h(Foo, {}, {
+          header: ({ children }) => h('h1', {}, 'header ' + children),
+          footer: h('p', {}, 'footer')
+        })])
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc);
+
+    const container = document.querySelector('.container') as HTMLElement
+
+    expect(container.innerHTML).toBe('<div class=\"foo\"><div><h1>header foo</h1></div><div class=\"default\">default</div><div><p>footer</p></div></div>')
+
+  })
+复制代码
+```
+
+### 需求分析
+
+通过上面的测试用例，分析出以下内容：
+
+1.  传入插槽的时候，传入一个函数，函数可以拿到子组件传过来的参数
+2.  `renderSlots`可以传入第三个参数props, 用于接收子组件往父组件传入的参数
+
+问题解决：
+
+1.  问题1: 只需要在传入插槽的时候进行一下判断，如果是函数的话，需要进行函数执行，并且传入参数
+2.  问题2： 也是对传入的内容进行判断，函数做传入参数处理
+
+### 编码
+
+```
+// 在renderSlot里面传入第三个参数
+
+export function renderSlots(slots, name = 'default', props = {}) {
+  const slot = slots[name];
+
+  if (slot) {
+    if (isFunction(slot)) {
+      return createVNode('div', {}, slot(props))
+    }
+    return createVNode('div', {}, slot)
+  }
+}
+
+// initSlot时候，需要进行函数判断
+
+ const slots = {}
+  // 遍历children
+  for (const key in children) {
+  // 判断传入的是否是函数，如果是函数的话，需要进行执行，并且传入参数
+    if (isFunction(children[key])) {
+      slots[key] = (props) => Array.isArray(children[key](props)) ? children[key](props) : [children[key](props)]
+    } else {
+      slots[key] = Array.isArray(children[key]) ? children[key] : [children[key]]
+    }
+  }
+
+  instance.slots = slots
+复制代码
+```
+
+到此，整个测试用例就可以完美通过啦！😃😃😃
