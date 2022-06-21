@@ -9,7 +9,7 @@ import { initSlots } from "./componentSlots"
  * 创建组件的实例
  * @param vnode 
  */
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent) {
   const instance = {
     vnode,
     props: {},
@@ -23,7 +23,11 @@ export function createComponentInstance(vnode) {
     // emit函数
     emit: () => { },
     // 插槽
-    slots: {}
+    slots: {},
+    // 提供数据
+    provides: parent ? parent.provides : {},
+    // 保存父级组件的实例，用于inject
+    parent,
   }
 
   instance.emit = emit.bind(null, instance);
