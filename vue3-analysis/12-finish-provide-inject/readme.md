@@ -2,325 +2,362 @@
 theme: qklhk-chocolate
 ---
 
-**持续创作，加速成长！这是我参与「掘金日新计划 · 6 月更文挑战」的第11天，[点击查看](https://juejin.cn/post/7099702781094674468 "https://juejin.cn/post/7099702781094674468")**
-
 # 引言
-
 <<往期回顾>>
 
 1.  [vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495 "https://juejin.cn/post/7108325858489663495")
 1.  [vue3源码分析——实现组件的挂载流程](https://juejin.cn/post/7109002484064419848 "https://juejin.cn/post/7109002484064419848")
-2. [vue3源码分析——实现props,emit，事件处理等](https://juejin.cn/post/7110133885140221989)
+1.  [vue3源码分析——实现props,emit，事件处理等](https://juejin.cn/post/7110133885140221989 "https://juejin.cn/post/7110133885140221989")
+4. [vue3源码分析——实现slots](https://juejin.cn/post/7111212195932799013)
 
-本期来实现， **slot——插槽，分为普通插槽，具名插槽，作用域插槽**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/11-finish-comp-slots)
+本期来实现， **vue3组件通信的provide，inject**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/12-finish-provide-inject)
 
+# getCurrentInstance
+> 在实现`provide/inject`之前，先来实现`getCurrentInstance`,由于在`provide/inject`中会使用到这个api,在开发的时候，这个api使用的频率也是挺频繁的。
 
-# 正文
+getCurrentInstance 是获取当前组件的实列，并且只能在setup函数中使用
 
-在 模板中使用插槽的方式如下：
-
-```ts
-<todo-button>
-  Add todo
-</todo-button>
-```
-在`template`中的内容最终会被`complie`成**render函数，render函数里面会调用h函数转化成vnode**，在vnode的使用方法如下：
+## 测试用例
 
 ```ts
-render() {
-    return h(TodoButton, {}, this.$slots.default)
-  },
-```
-
-看完slots的基本用法，一起来实现个slots,方便自己理解slots的原理哦！😀😀😀
-
-## 实现基本的用法
-使用**slots的地方是this.$slots，并且调用的属性是default,那么$slots则是一个对象，对象里面有插槽的名称，如果使用者没有传递，则可以通过default来进行访问**。
-
-### 测试用例
-> attention！！！ 
-> 由于测试的是dom,需要先写入html等，在这里需要先创建对应的节点
-
-
-```ts
- let appElement: Element;
-  beforeEach(() => {
-    appElement = document.createElement('div');
-    appElement.id = 'app';
-    document.body.appendChild(appElement);
-  })
-  afterEach(() => {
-    document.body.innerHTML = '';
-  })
-```
-
-本案例的测试正式开始
-
-```ts
- test('test basic slots', () => {
- // 子组件Foo
+test('test getCurrentInstance', () => {
     const Foo = {
       name: 'Foo',
+      setup() {
+      // 获取子组件的实列，并且期望是子组件的名称是Foo
+        const instance = getCurrentInstance();
+        expect(instance.type.name).toBe('Foo');
+        return {
+          count: 1
+        }
+      },
       render() {
-        return h('div', { class: 'foo' }, [h('p', {}, this.count), renderSlots(this.$slots)]);
+        return h('div', {}, '122')
       }
     }
 
     const app = createApp({
+      name: 'App',
+      setup() {
+      // 获取父组件的实例，期待父组件的名称是定义的App
+        const instance = getCurrentInstance();
+        expect(instance.type.name).toBe('App');
+        return {
+          count: 2
+        }
+      },
       render() {
-        return h('div', { class: 'container' }, [
-          h(Foo, { count: 1 }, { default: h('div', { class: 'slot' }, 'slot1') }),
-          h(Foo, { count: 2 }, { default: [h('p', { class: 'slot' }, 'slot2'), h('p', { class: 'slot' }, 'slot2')] }),
-        ])
+        return h('div', { class: 'container' }, [h(Foo, {}, {})])
       }
     })
-
+    // 挂载组件
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
-    // 测试挂载的内容是否正确
-    const container = document.querySelector('.container') as HTMLElement;
-     expect(container.innerHTML).toBe('<div class="foo"><p>1</p><div class="slot">slot1</div></div><div class="foo"><p>2</p><p class="slot">slot2</p><p class="slot">slot2</p></div>'
-    )
   })
 ```
 
-### 需求分析
-通过上面的测试用例，可以分析以下内容：
+## 分析
+在上面的测试拥立中，可以得到以下内容：
 
-1.  父组件使用子组件传入插槽的方式是在h的**第三个参数，并且传入的是一个对象，value的值可以是对象，或者是数组**
-2. 子组件中使用插槽的时候，是**在this.$slots中获取的**    
-3. 并且还实现了**一个renderSlot的方法，renderSlot是将this.$slots调用h转变为vnode**
+1. getCurrentInstance只能在setup函数中使用
+2. 对外导出的api,获取的是当前组件的实列
 
 问题解决：
 
-1. 需要在绑定在this上面，那就在`setupStatefulComponent`函数代理中加入判断，传入的`$slots `;
-2. 判断`$slot`是否在组件的代理中，然后代理需要把**slots绑定在instance上面**并且绑定值的时候需要把**传入的对象统一转成数组**;
-3. `renderSlot`方法调用了`h函数`，把一个数据转成vnode
+对于上面两个问题，**只需要导出一个函数，并且在全局定义一个变量，在setup执行的时候，赋值全局变量即可拿到当前组件的实例，然后setup执行之后，清空即可**
 
-
-### 编码实现
-
+## 编码
 
 ```ts
-// 需要把$slots绑定在this上面，那就需要在代理里面在加入一个判断即可
+// setup执行是在setupStatefulComponent函数中执行的，来进行改造
+
+// 定义全局的变量，存储当前实例
+let currentInstance = null;
 function setupStatefulComponent(instance: any) {
-  // 代理组件的上下文
-  instance.proxy = new Proxy({  }, {
-      get(target,key){
-       // 省略其他
-       else if(key in instance.slots){
-         return instance.slots[key]
-       }
-      }
-  })
-}
-
-// 接下里在instance上面加上slots属性
-export function setupComponent(instance) {
-  // 获取props和children
-  const { props, children } = instance.vnode
-
-  // 处理props
-  
-  const slots = {}
-  for (const key in children) {
-      slots[key] = Array.isArray(children[key]) ? children[key] : [children[key]]
-  }
-  instance.slots = slots
-  
   // ……省略其他
+  // 获取组件的setup
+  const { setup } = Component;
+  if (setup) {
+      currentInstance = instance
+      const setupResult = setup(shallowReadonly(instance.props), { emit: instance.emit })
+      // 情况操作
+       currentInstance = null
   }
-  
-  // 最后还需要使用renderSlot函数
-  export function renderSlots(slots) {
-    const slot = slots['default']
-       if (slot) {
-        return createVNode('div', {}, slot)
-      }
-}
-```
-
-通过上面的编码，测试用例就可以通过吗？
-肯定是不行的，在`renderSlots`里面的第一个参数，传入了div,那么渲染出来的html内容肯定是都会多一层div包裹的。
-
-那就来解决下。
-
-
-```ts
- export function renderSlots(slots) {
-    const slot = slots['default']
-       if (slot) {
-       // 传入一个Fragment节点，这个节点是不存在的，等patch的时候，会有问题
-        return createVNode('Fragment', {}, slot)
-      }
-}
-
-
-// 处理patch函数，处理type为Fragment的vnode
-export function patch(vnode, container) {
-  const { type } = vnode
-  if(type === 'Fragment){
-   // 拿到children
-   vnode.children.forEach(e => {
-      patch(e, container)
-   })
-  }
+  // ……省略其他
  }
-```
-
-这么处理后，测试用例即可完美通关啦
-
-## 具名插槽
-
-具名插槽就是，插槽除了可以有多个，并且除了default外，可以加入其他的名字，具体请看测试用例
-### 测试用例
 
 
-```ts
- test('测试具名插槽', () => {
-    const Foo = {
-      name: 'Foo',
-      render() {
-        return h('div', { class: 'foo' },
-          [
-            renderSlots(this.$slots, 'header'),
-            h('div', { class: 'default' }, 'default'),
-            renderSlots(this.$slots, 'footer')
-          ]
-        );
-      }
-    }
-
-    const app = createApp({
-      name: 'App',
-      render() {
-        return h('div', { class: 'container' }, [h(Foo, {}, {
-          header: h('h1', {}, 'header'),
-          footer: h('p', {}, 'footer')
-        })])
-      }
-    })
-
-    const appDoc = document.querySelector('#app')
-    app.mount(appDoc);
-
-    const container = document.querySelector('.container') as HTMLElement
-
-    expect(container.innerHTML).toBe('<div class=\"foo\"><div><h1>header</h1></div><div class=\"default\">default</div><div><p>footer</p></div></div>')
-  })
-```
-
-### 分析
-通过上面测试用例，发现以下内容：
-
-1. `renderSlot`传入第二个参数，然后可以获取对于的slots
-
-问题解决
-
-直接在renderSlot里面传入第二个参数即可
-
-### 编码
-
-
-```ts
-  // 最后还需要使用renderSlot函数
-  export function renderSlots(slots, name = 'default') {
-    const slot = slots[name]
-       if (slot) {
-        return createVNode('div', {}, slot)
-      }
+// 对外导出函数，提供全局的api
+export function getCurrentInstance() {
+  return currentInstance
 }
 ```
+getCurrentInstance 有没有想到实现方式这么简单哇！😀😀😀
 
-> 这一步是不是比较简单，相对起前面来说，正所谓，前面考虑好了，后面就舒服，接下来实现作用域插槽
+# provide/inject
+> provide和inject需要配套使用才方便用于测试，这里就从功能分析，来逐步完成这两个api.
 
+## 父子组件传值
 
-## 作用域插槽
-
-作用域插槽是，**每个slot里面可以传入数据，数据只在当前的slot有效**，具体请看测试用例
+父子组件传值可以使用`props/emit`来实现，还记得是怎么实现的么？[🙄🙄😶](https://juejin.cn/post/7110133885140221989)
 
 ### 测试用例
 
 ```ts
-test('测试作用域插槽', () => {
+test('test provide basic use', () => {
     const Foo = {
       name: 'Foo',
+      setup() {
+      // 子组件接受数据
+        const count = inject('count')
+        const str = inject('str')
+        return {
+          count,
+          str
+        }
+      },
       render() {
-        return h('div', { class: 'foo' },
-          [
-            renderSlots(this.$slots, 'header', { children: 'foo' }),
-            h('div', { class: 'default' }, 'default'),
-            renderSlots(this.$slots, 'footer')
-          ]
-        );
+        return h('div', {}, this.str + this.count)
       }
     }
 
     const app = createApp({
       name: 'App',
+      setup() {
+      // 父组件提供数据，
+        provide('count', 1);
+        provide('str', 'str');
+      },
       render() {
-        return h('div', { class: 'container' }, [h(Foo, {}, {
-          header: ({ children }) => h('h1', {}, 'header ' + children),
-          footer: h('p', {}, 'footer')
-        })])
+        return h('div', { class: 'container' }, [h(Foo, {})])
       }
     })
 
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
-
-    const container = document.querySelector('.container') as HTMLElement
-
-     expect(container.innerHTML).toBe('<div class=\"foo\"><h1>header foo</h1><div class=\"default\">default</div><p>footer</p></div>')
-
+    const container = document.querySelector('.container') as HTMLElement;
+    expect(container.innerHTML).toBe('<div>str1</div>')
   })
 ```
-
-### 需求分析
-
-通过上面的测试用例，分析出以下内容：
-
-1. 传入插槽的时候，传入一个函数，函数可以拿到子组件传过来的参数
-2. `renderSlots`可以传入第三个参数props, 用于接收子组件往父组件传入的参数
-
+### 分析
+从上面的测试用例中进行需求分析，
+1. `provide api`是需要有**两个参数，一个key,另一个是value**, 有点类似与sessionStorage这种set值的方式
+2. `inject api`则是只需要一个**key,来进行get**操作
+3. `provide`存的数据，**存在哪里呢？**
 
 问题解决：
-
-1. 问题1: 只需要在传入插槽的时候进行一下判断，如果是函数的话，需要进行函数执行，并且传入参数
-2. 问题2： 也是对传入的内容进行判断，函数做传入参数处理
-
+问题1和问题2都很好解决，对外导出函数，传递对应的参数，只是数据存储在哪里的问题，经过仔细的思考，会发现，组件的数据是需要进行共享的，父组件存入的数据，里面的所有子组件和孙子组件都可以共享，那么**存储在实例上**，是不是一个不错的选择呢？
+**inject 是获取父级组件的数据，那么在实列上还需要传入parent**
 
 ### 编码
 
-
 ```ts
-// 在renderSlot里面传入第三个参数
+由于需要在实例上存储provide,首先就在createInstance中的实例，在初始化就赋值
 
-export function renderSlots(slots, name = 'default', props = {}) {
-  const slot = slots[name];
+export function createComponentInstance(vnode, parent) {
+  const instance = {
+    // ……省略其他属性
+    // 提供数据
+    provides: {},
+    parent,
+  }
+  return instance
+}
 
-  if (slot) {
-    if (isFunction(slot)) {
-      return createVNode('Fragment', {}, slot(props))
-    }
-    return createVNode('Fragment', {}, slot)
+// 有了实例，分别创建provide，inject函数
+
+export function provide(key, val){
+  // 将数据存在实例上，先进行获取
+  const instance = getCurrentInstance();
+  if(instance){
+      instance.provides[key] = val
   }
 }
 
-// initSlot时候，需要进行函数判断
+export function inject(key){
+ // 从实列上取值
+ const instance = getCurrentInstance();
+ if(instance){
+     // 获取父级provides
+     const provides = instance.parent?.provides;
+     if(key in provides){
+        return provides[key]
+     }
+     return null
+ }
+}
+```
+一个简单的prvide/inject就实现啦，接下来进行需求升级，爷孙组件数据传递
 
- const slots = {}
-  // 遍历children
-  for (const key in children) {
-  // 判断传入的是否是函数，如果是函数的话，需要进行执行，并且传入参数
-    if (isFunction(children[key])) {
-      slots[key] = (props) => Array.isArray(children[key](props)) ? children[key](props) : [children[key](props)]
-    } else {
-      slots[key] = Array.isArray(children[key]) ? children[key] : [children[key]]
+## 爷孙组件传值
+
+无可厚非，就是孙子组件需要从爷爷组件中获取值，父组件不提供数据
+
+### 测试用例
+
+```ts
+test('test provide exit grandfather', () => {
+    const Child = {
+      name: 'Foo',
+      setup() {
+      // 孙子组件也可以取值
+        const count = inject('count')
+        const str = inject('str')
+        return {
+          count,
+          str
+        }
+      },
+      render() {
+        return h('div', {}, this.str + this.count)
+      }
     }
+
+    const Father = {
+      name: 'Father',
+      setup() {
+      // 子组件可以取值
+        const count = inject('count')
+        return {
+          count
+        }
+      },
+      render() {
+        return h('div', {}, [h('p', {}, this.count), h(Child, {})])
+      }
+    }
+
+    const app = createApp({
+      name: 'App',
+      setup() {
+       // 爷爷提供数据
+        provide('count', 1);
+        provide('str', 'str');
+        return {}
+      },
+      render() {
+        return h('div', { class: 'container' }, [h(Father, {})])
+      }
+    })
+
+    const appDoc = document.querySelector('#app');
+    app.mount(appDoc);
+    const container = document.querySelector('.container') as HTMLElement;
+    expect(container.innerHTML).toBe('<div><p>1</p><div>str1</div></div>')
+  })
+```
+### 分析
+上面的测试用例相对于父子组件的测试用例来说，增加了一个孙子组件。
+1. **孙子（Child组件）** 和 **父亲（Foo组件）** 都可以获取 **爷爷（App组件)** 的值
+2. 其他的没啥变化
+
+问题解决：
+想要让孙子组件获取爷爷组件的数据，那是否可以让**父组件Foo在初始化就获取他父组件App的provides**
+
+### 编码
+
+```ts
+// 需要在组件初始化的时候，获取父组件的数据,修改下初始化的内容
+export function createComponentInstance(vnode, parent) {
+  const instance = {
+    // ……省略其他属性
+    // 存在则用，不存在还是空对象
+    provides: parent ? parent.provides : {},
+    parent,
   }
-  
-  instance.slots = slots
+  return instance
+}
 ```
 
-到此，整个测试用例就可以完美通过啦！😃😃😃
+是不是感觉非常简单哇，那接下来在升级下，`inject`获取`provide`的数据，需要就**近原则**来进行获取
+
+## 就近原则获取数据
+
+> 就近原则的意思是说，**如果父组件有就拿父组件的，父组件没有就那爷爷组件的，爷爷组件没有继续往上找，直到找到跟组件App上，如果还没有就为null**
+
+### 测试用例
+
+```ts
+ test('get value by proximity principle(就近原则) ', () => {
+ // 孙子组件来获取数据
+  const GrandSon = {
+      name: 'GrandSon',
+      setup() {
+        const count = inject('count')
+        const str = inject('str')
+        return {
+          count,
+          str
+        }
+      },
+      render() {
+        return h('div', {}, this.str + this.count)
+      }
+    }
+    // 子组件提供count
+    const Child = {
+      name: 'Child',
+      setup() {
+        provide('count', 100)
+      },
+      render() {
+        return h(GrandSon)
+      }
+    }
+    // 父亲组件，不提供数据
+    const Father = {
+      name: 'Father',
+      render() {
+        return h(Child)
+      }
+    }
+   // 跟组件app,提供，count，str
+    const app = createApp({
+      name: 'App',
+      setup() {
+        provide('count', 1);
+        provide('str', 'str');
+        return {}
+      },
+      render() {
+        return h('div', { class: 'container' }, [h(Father, {})])
+      }
+    })
+   // ……省略挂载
+    const container = document.querySelector('.container') as HTMLElement;
+    expect(container.innerHTML).toBe('<div>str100</div>')
+  })
+```
+### 分析
+在上面的测试用例中，存在4个组件，只有app组件和Child组件提供数据，其他只是嵌套，不提供数据。存在下面问题：
+1. **inject怎么去查找provides的数据，一层一层的查找**
+
+问题解决：
+    怎么查找呢，**在inject里面递归？** NO😱😱😱,换一个角度，inject查找数据的时候，是不是有点像**原型链**的方式来进行查找呢？YES😆😆😆,那就是需要在provide里面来构建一条原型链。 
+    
+> 原型链,
+ > 啥叫做原型链呢？[请查看](https://juejin.cn/post/7000331533353484296)
+ 
+ ### 编码
+ 
+```ts
+// 只需要改造provide函数即可
+export function provide(key, val) {
+  // 数据需要存储在当前的实例上面
+  const instance = getCurrentInstance();
+
+  if (instance) {
+    let { provides } = instance;
+    // 正对多层组件，需要把当前组件的__proto__绑定到父级上面，形成原型链，可以访问到最顶层的数据
+    const parentProvides = instance.parent && instance.parent.provide;
+    // 只有父级的provides和当前的provides是相同的时候为第一次调用provide,后续调用就不需要绑定原型了
+    if (parentProvides === provides) {
+      provides = instance.providers = Object.create(parentProvides || {});
+    }
+    provides[key] = val;
+  }
+}
+```
+
+# 总结
+本期主要完成了`getCurrentInstance,provide,inject`的实现，在`getCurrentInstance`中只是用了一个中间变量，而`provide`是把数据存在当前的`instance`当中，`provide`里面还用到了**原型链**的知识，通过原型的方式来查询key是否存在,不存在则往上查找

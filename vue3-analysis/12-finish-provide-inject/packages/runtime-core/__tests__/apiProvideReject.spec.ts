@@ -165,6 +165,9 @@ describe('apiProvideReject', () => {
     }
     const Child = {
       name: 'Child',
+      setup() {
+        provide('count', 100)
+      },
       render() {
         return h(GrandSon)
       }
@@ -193,7 +196,7 @@ describe('apiProvideReject', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement;
-    expect(container.innerHTML).toBe('<div>str1</div>')
+    expect(container.innerHTML).toBe('<div>str100</div>')
   })
 
   test('inject can get second params', () => {
