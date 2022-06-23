@@ -1,6 +1,4 @@
-import { createApp, h } from "../src";
-import { renderSlots } from "../src/helpers/renderSlots";
-import { createTextVNode } from "../src/vnode";
+import { createApp, renderSlots, createTextVNode, h } from "runtime-test"
 
 describe('componentSlots', () => {
   let appElement: Element;

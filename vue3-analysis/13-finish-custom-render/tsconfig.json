@@ -19,6 +19,9 @@
     "jsx": "preserve",
     "lib": ["esnext", "dom"],
     "types": ["jest", "node"],
+    "paths": {
+      "runtime-test": ["packages/runtime-test"],
+    }
   },
   "include": [
     "packages/*/src",

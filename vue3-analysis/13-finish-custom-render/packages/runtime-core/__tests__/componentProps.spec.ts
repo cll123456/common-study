@@ -1,6 +1,5 @@
 import { ref } from "reactivity";
-import { createApp, h } from "../src";
-
+import { createApp, h } from "runtime-test"
 describe('componentProps', () => {
   let appElement: Element;
 

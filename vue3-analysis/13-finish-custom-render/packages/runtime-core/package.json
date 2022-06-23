@@ -8,7 +8,8 @@
   "types": "dist/runtime-core.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "rimraf dist & rollup -c"
+    "build": "rimraf dist & rollup -c",
+    "buildDev": "rollup -c"
   },
   "keywords": [],
   "dependencies": {

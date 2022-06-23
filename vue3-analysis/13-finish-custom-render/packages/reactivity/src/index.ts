@@ -21,4 +21,5 @@ export {
   track,
 } from './effect'
 
+export { computed } from './computed'
 

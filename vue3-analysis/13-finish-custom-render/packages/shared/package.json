@@ -7,7 +7,8 @@
   "module": "dist/shared.esm-bundler.js",
   "types": "dist/shared.d.ts",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rimraf dist & rollup -c",
+    "buildDev": "rollup -c",
     "test": "jest"
   },
   "keywords": [],

@@ -1,5 +1,5 @@
 import { h } from "../src";
-import { createApp } from "../src/apiCreateApp";
+import { createApp } from "runtime-test";
 
 describe('apiCreateApp', () => {
   let appElement: Element;

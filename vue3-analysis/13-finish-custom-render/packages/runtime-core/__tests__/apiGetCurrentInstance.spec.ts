@@ -1,5 +1,4 @@
-import { createApp, h } from "../src";
-import { getCurrentInstance } from "../src/component";
+import { createApp, getCurrentInstance, h } from "runtime-test"
 
 describe('apiGetCurrentInstance', () => {
   let appElement: Element;

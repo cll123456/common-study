@@ -13,6 +13,7 @@ importers:
       rollup: ^2.75.6
       rollup-plugin-dts: ^4.2.2
       rollup-plugin-esbuild: ^4.9.1
+      runtime-test: workspace:runtime-test@*
       ts-jest: ^28.0.3
       typescript: ^4.7.2
     devDependencies:
@@ -25,6 +26,7 @@ importers:
       rollup: 2.75.6
       rollup-plugin-dts: 4.2.2_o6g7e3s62ppa7lht6hub2qg6yi
       rollup-plugin-esbuild: 4.9.1_2uefy6dldbldonrghlgjus4ieu
+      runtime-test: link:packages/runtime-test
       ts-jest: 28.0.3_3bvwnfaa7xmfp3ul67zupuzuli
       typescript: 4.7.2
 
@@ -40,6 +42,24 @@ importers:
       shared: workspace:shared@*
     dependencies:
       reactivity: link:../reactivity
+      shared: link:../shared
+
+  packages/runtime-dom:
+    specifiers:
+      reactivity: workspace:reactivity@*
+      runtime-core: workspace:runtime-core@*
+      shared: workspace:shared@*
+    dependencies:
+      reactivity: link:../reactivity
+      runtime-core: link:../runtime-core
+      shared: link:../shared
+
+  packages/runtime-test:
+    specifiers:
+      runtime-core: workspace:runtime-core@*
+      shared: workspace:shared@*
+    dependencies:
+      runtime-core: link:../runtime-core
       shared: link:../shared
 
   packages/shared:

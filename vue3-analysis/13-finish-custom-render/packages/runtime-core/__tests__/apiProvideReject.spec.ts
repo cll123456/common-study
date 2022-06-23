@@ -1,5 +1,4 @@
-import { createApp, h } from "../src";
-import { inject, provide } from "../src/apiProvide";
+import { createApp, inject, provide, h } from "runtime-test"
 
 describe('apiProvideReject', () => {
   let appElement: Element;
