@@ -116,29 +116,22 @@ export function createRenderer(options) {
     const el = createElement(vnode.type)
     // 设置vnode的el
     vnode.el = el
-
     // 设置属性
     const { props } = vnode
 
     for (let key in props) {
       patchProps(el, key, props[key])
-      // 判断key是否是on + 事件命，满足条件需要注册事件
-
     }
     // 处理子元素
     const children = vnode.children
-
     if (vnode.shapeflag & ShapeFlags.ARRAY_CHILDREN) {
       // 数组
       mountChildren(children, el, parentComponent)
     } else if (vnode.shapeflag & ShapeFlags.TEXT_CHILDREN) {
-      // 文本
-      // el.innerHTML = String(children)
       // 自定义插入文本
       setElementText(el, String(children))
     }
     // 挂载元素
-    container.appendChild(el)
     insert(el, container)
   }
 

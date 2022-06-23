@@ -8,356 +8,184 @@ theme: qklhk-chocolate
 1.  [vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495 "https://juejin.cn/post/7108325858489663495")
 1.  [vue3源码分析——实现组件的挂载流程](https://juejin.cn/post/7109002484064419848 "https://juejin.cn/post/7109002484064419848")
 1.  [vue3源码分析——实现props,emit，事件处理等](https://juejin.cn/post/7110133885140221989 "https://juejin.cn/post/7110133885140221989")
-4. [vue3源码分析——实现slots](https://juejin.cn/post/7111212195932799013)
+1.  [vue3源码分析——实现slots](https://juejin.cn/post/7111212195932799013 "https://juejin.cn/post/7111212195932799013")
+5. [vue3源码分析——实现组件通信provide,inject](https://juejin.cn/post/7111682377507667999)
 
-本期来实现， **vue3组件通信的provide，inject**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/12-finish-provide-inject)
+本期来实现， **vue3的自定义渲染器，增加runtime-test子包**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/13-finish-custom-render)
 
-# getCurrentInstance
-> 在实现`provide/inject`之前，先来实现`getCurrentInstance`,由于在`provide/inject`中会使用到这个api,在开发的时候，这个api使用的频率也是挺频繁的。
+# 正文
+`createRenderer`的作用是： **实现vue3的runtime-core的核心，不只是仅仅的渲染到dom上，还可以渲染到canvas,webview等指定的平台**
 
-getCurrentInstance 是获取当前组件的实列，并且只能在setup函数中使用
+>请思考🤔🤔🤔，createRenderer是怎么做到的呢？
 
-## 测试用例
+
+# 设计createRenderer函数
+createRenderer顾名思义就是创造一个`render`(可以直接导出一个render函数),现在咱们的是直接在`render.ts`中对外导`render函数`出提供给createApp中使用
+
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/24cbd4e00c8b40e4862d449523ef55cd~tplv-k3u1fbpfcp-watermark.image?)
+
+对于createApp而言，需要render函数，那么咱们可以通过函数的参数穿进来，那就变成这个样子的形式
+
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0cb034c687cf4350804a63cd3dfcbd22~tplv-k3u1fbpfcp-watermark.image?)
+
+## 编码
+
 
 ```ts
-test('test getCurrentInstance', () => {
-    const Foo = {
-      name: 'Foo',
-      setup() {
-      // 获取子组件的实列，并且期望是子组件的名称是Foo
-        const instance = getCurrentInstance();
-        expect(instance.type.name).toBe('Foo');
-        return {
-          count: 1
-        }
-      },
-      render() {
-        return h('div', {}, '122')
-      }
-    }
+// 通过上面的分析，先把createApp给改造一下,需要一个新的函数来包裹，并且传入render函数
 
-    const app = createApp({
-      name: 'App',
-      setup() {
-      // 获取父组件的实例，期待父组件的名称是定义的App
-        const instance = getCurrentInstance();
-        expect(instance.type.name).toBe('App');
-        return {
-          count: 2
-        }
-      },
-      render() {
-        return h('div', { class: 'container' }, [h(Foo, {}, {})])
+export function createAppApi(render){
+ return function createApp(rootComponent){
+  // ……原有的逻辑不变
+ }
+}
+
+// 在createAppApi里面需要render，那就在createRenderer里面调用并且给他，
+// 返回一个新的createApp
+export function createRenderer(){
+     function render(vnode, container) {
+        // 调用patch
+        patch(vnode, container, null)
       }
-    })
-    // 挂载组件
-    const appDoc = document.querySelector('#app')
-    app.mount(appDoc);
-  })
+ // ……省略其他所有的函数
+ 
+ return {
+  // 这样设计是不是对外导出了一个新的createAPP哇
+  createApp: createAppApi(render)
+ }
+}
 ```
 
+
+# 渲染平台
+
+既然是自定义渲染平台，那肯定是需要修改元素的挂载逻辑，并且把需要挂载的平台给传入进来
+
+
 ## 分析
-在上面的测试拥立中，可以得到以下内容：
 
-1. getCurrentInstance只能在setup函数中使用
-2. 对外导出的api,获取的是当前组件的实列
+**目前代码里面默认是渲染到dom**，在mountElement里面使用了`document.createElement`, `dom.setAttribute`, `dom.innerHtml`等逻辑都是用来处理dom操作，其他的平台挂载元素的方式是不一样的，那么怎么解决这个问题呢？
 
-问题解决：
-
-对于上面两个问题，**只需要导出一个函数，并且在全局定义一个变量，在setup执行的时候，赋值全局变量即可拿到当前组件的实例，然后setup执行之后，清空即可**
+需要解决这个问题，也是非常简单的，既然咱们不知道是挂载到哪里，那直接通过`createRenderer`里面传入进来就ok啦😄😄😄
+目前用到的主要是四个地方涉及到dom操作，把这四个地方统统封装成函数，然后通过`createRenderer`里面作为options里面传入即可
 
 ## 编码
 
 ```ts
-// setup执行是在setupStatefulComponent函数中执行的，来进行改造
+在createRenderer里面加入参数options,并且结构出四个函数
 
-// 定义全局的变量，存储当前实例
-let currentInstance = null;
-function setupStatefulComponent(instance: any) {
-  // ……省略其他
-  // 获取组件的setup
-  const { setup } = Component;
-  if (setup) {
-      currentInstance = instance
-      const setupResult = setup(shallowReadonly(instance.props), { emit: instance.emit })
-      // 情况操作
-       currentInstance = null
+export function createRenderer(options) {
+  const {
+   // 创建元素
+    createElement,
+    // 绑定key
+    patchProps,
+    // 插入操作
+    insert,
+    // 设置文本
+    setElementText
+  } = options
+  
+  
+    function mountElement(vnode: any, container: any, parentComponent) {
+        const el = createElement(vnode.type)
+    // 设置vnode的el
+    vnode.el = el
+    // 设置属性
+    const { props } = vnode
+
+    for (let key in props) {
+      patchProps(el, key, props[key])
+    }
+    // 处理子元素
+    const children = vnode.children
+    if (vnode.shapeflag & ShapeFlags.ARRAY_CHILDREN) {
+      // 数组
+      mountChildren(children, el, parentComponent)
+    } else if (vnode.shapeflag & ShapeFlags.TEXT_CHILDREN) {
+      // 自定义插入文本
+      setElementText(el, String(children))
+    }
+    // 挂载元素
+    insert(el, container)
+    }
   }
-  // ……省略其他
- }
-
-
-// 对外导出函数，提供全局的api
-export function getCurrentInstance() {
-  return currentInstance
-}
 ```
-getCurrentInstance 有没有想到实现方式这么简单哇！😀😀😀
+> 这么改造，目前`createRenderer`的功能实现了，但是会发现所有用的`createApp`的测试用例都不行了，**由于咱们没目前没有对外导出createApp**。
 
-# provide/inject
-> provide和inject需要配套使用才方便用于测试，这里就从功能分析，来逐步完成这两个api.
+# runtime-test
+从目前来说，本块的内容可以说是 `runtime-dom`,因为`runtime-test`对外提供的确实是dom环境的测试，方便用于`runtime-core`的测试
 
-## 父子组件传值
+> 新建子包的过程不在这里描述哈，有兴趣的可以[查看](https://juejin.cn/post/7104559841967865863)
 
-父子组件传值可以使用`props/emit`来实现，还记得是怎么实现的么？[🙄🙄😶](https://juejin.cn/post/7110133885140221989)
+`runtime-test`需要的依赖是：
 
-### 测试用例
 
 ```ts
-test('test provide basic use', () => {
-    const Foo = {
-      name: 'Foo',
-      setup() {
-      // 子组件接受数据
-        const count = inject('count')
-        const str = inject('str')
-        return {
-          count,
-          str
-        }
-      },
-      render() {
-        return h('div', {}, this.str + this.count)
-      }
-    }
-
-    const app = createApp({
-      name: 'App',
-      setup() {
-      // 父组件提供数据，
-        provide('count', 1);
-        provide('str', 'str');
-      },
-      render() {
-        return h('div', { class: 'container' }, [h(Foo, {})])
-      }
-    })
-
-    const appDoc = document.querySelector('#app')
-    app.mount(appDoc);
-    const container = document.querySelector('.container') as HTMLElement;
-    expect(container.innerHTML).toBe('<div>str1</div>')
-  })
-```
-### 分析
-从上面的测试用例中进行需求分析，
-1. `provide api`是需要有**两个参数，一个key,另一个是value**, 有点类似与sessionStorage这种set值的方式
-2. `inject api`则是只需要一个**key,来进行get**操作
-3. `provide`存的数据，**存在哪里呢？**
-
-问题解决：
-问题1和问题2都很好解决，对外导出函数，传递对应的参数，只是数据存储在哪里的问题，经过仔细的思考，会发现，组件的数据是需要进行共享的，父组件存入的数据，里面的所有子组件和孙子组件都可以共享，那么**存储在实例上**，是不是一个不错的选择呢？
-**inject 是获取父级组件的数据，那么在实列上还需要传入parent**
-
-### 编码
-
-```ts
-由于需要在实例上存储provide,首先就在createInstance中的实例，在初始化就赋值
-
-export function createComponentInstance(vnode, parent) {
-  const instance = {
-    // ……省略其他属性
-    // 提供数据
-    provides: {},
-    parent,
+ "dependencies": {
+    "shared":"workspace:shared@*",
+    "runtime-core":"workspace:runtime-core@*"
   }
-  return instance
+```
+
+## 分析
+`runtime-test`的作用是对外提供一个`createApp`函数，那就需要调用createRender来创建一个customRender，customRender里面有createApp函数。 调用createRender又需要传入一个options,options是我们当前对应平台的4个函数，分别是：
+
+- createElement： 创建dom
+- patchProps: 处理属性
+- insert: 将某个元素插入到哪里
+- setElementText： 设置文本
+
+## 编码
+
+```ts
+function createElement(type) {
+  return document.createElement(type);
+
 }
 
-// 有了实例，分别创建provide，inject函数
+function patchProps(el, key, value) {
 
-export function provide(key, val){
-  // 将数据存在实例上，先进行获取
-  const instance = getCurrentInstance();
-  if(instance){
-      instance.provides[key] = val
+  if (isOn(key)) {
+    // 注册事件
+    el.addEventListener(key.slice(2).toLowerCase(), value)
   }
+  el.setAttribute(key, value)
 }
 
-export function inject(key){
- // 从实列上取值
- const instance = getCurrentInstance();
- if(instance){
-     // 获取父级provides
-     const provides = instance.parent?.provides;
-     if(key in provides){
-        return provides[key]
-     }
-     return null
- }
+
+function insert(el, container) {
+  container.append(el)
 }
-```
-一个简单的prvide/inject就实现啦，接下来进行需求升级，爷孙组件数据传递
 
-## 爷孙组件传值
-
-无可厚非，就是孙子组件需要从爷爷组件中获取值，父组件不提供数据
-
-### 测试用例
-
-```ts
-test('test provide exit grandfather', () => {
-    const Child = {
-      name: 'Foo',
-      setup() {
-      // 孙子组件也可以取值
-        const count = inject('count')
-        const str = inject('str')
-        return {
-          count,
-          str
-        }
-      },
-      render() {
-        return h('div', {}, this.str + this.count)
-      }
-    }
-
-    const Father = {
-      name: 'Father',
-      setup() {
-      // 子组件可以取值
-        const count = inject('count')
-        return {
-          count
-        }
-      },
-      render() {
-        return h('div', {}, [h('p', {}, this.count), h(Child, {})])
-      }
-    }
-
-    const app = createApp({
-      name: 'App',
-      setup() {
-       // 爷爷提供数据
-        provide('count', 1);
-        provide('str', 'str');
-        return {}
-      },
-      render() {
-        return h('div', { class: 'container' }, [h(Father, {})])
-      }
-    })
-
-    const appDoc = document.querySelector('#app');
-    app.mount(appDoc);
-    const container = document.querySelector('.container') as HTMLElement;
-    expect(container.innerHTML).toBe('<div><p>1</p><div>str1</div></div>')
-  })
-```
-### 分析
-上面的测试用例相对于父子组件的测试用例来说，增加了一个孙子组件。
-1. **孙子（Child组件）** 和 **父亲（Foo组件）** 都可以获取 **爷爷（App组件)** 的值
-2. 其他的没啥变化
-
-问题解决：
-想要让孙子组件获取爷爷组件的数据，那是否可以让**父组件Foo在初始化就获取他父组件App的provides**
-
-### 编码
-
-```ts
-// 需要在组件初始化的时候，获取父组件的数据,修改下初始化的内容
-export function createComponentInstance(vnode, parent) {
-  const instance = {
-    // ……省略其他属性
-    // 存在则用，不存在还是空对象
-    provides: parent ? parent.provides : {},
-    parent,
-  }
-  return instance
+function setElementText(el, text) {
+  el.textContent = text;
 }
-```
 
-是不是感觉非常简单哇，那接下来在升级下，`inject`获取`provide`的数据，需要就**近原则**来进行获取
+const render: any = createRenderer({
+  createElement,
+  patchProps,
+  insert,
+  setElementText
+});
 
-## 就近原则获取数据
-
-> 就近原则的意思是说，**如果父组件有就拿父组件的，父组件没有就那爷爷组件的，爷爷组件没有继续往上找，直到找到跟组件App上，如果还没有就为null**
-
-### 测试用例
-
-```ts
- test('get value by proximity principle(就近原则) ', () => {
- // 孙子组件来获取数据
-  const GrandSon = {
-      name: 'GrandSon',
-      setup() {
-        const count = inject('count')
-        const str = inject('str')
-        return {
-          count,
-          str
-        }
-      },
-      render() {
-        return h('div', {}, this.str + this.count)
-      }
-    }
-    // 子组件提供count
-    const Child = {
-      name: 'Child',
-      setup() {
-        provide('count', 100)
-      },
-      render() {
-        return h(GrandSon)
-      }
-    }
-    // 父亲组件，不提供数据
-    const Father = {
-      name: 'Father',
-      render() {
-        return h(Child)
-      }
-    }
-   // 跟组件app,提供，count，str
-    const app = createApp({
-      name: 'App',
-      setup() {
-        provide('count', 1);
-        provide('str', 'str');
-        return {}
-      },
-      render() {
-        return h('div', { class: 'container' }, [h(Father, {})])
-      }
-    })
-   // ……省略挂载
-    const container = document.querySelector('.container') as HTMLElement;
-    expect(container.innerHTML).toBe('<div>str100</div>')
-  })
-```
-### 分析
-在上面的测试用例中，存在4个组件，只有app组件和Child组件提供数据，其他只是嵌套，不提供数据。存在下面问题：
-1. **inject怎么去查找provides的数据，一层一层的查找**
-
-问题解决：
-    怎么查找呢，**在inject里面递归？** NO😱😱😱,换一个角度，inject查找数据的时候，是不是有点像**原型链**的方式来进行查找呢？YES😆😆😆,那就是需要在provide里面来构建一条原型链。 
-    
-> 原型链,
- > 啥叫做原型链呢？[请查看](https://juejin.cn/post/7000331533353484296)
- 
- ### 编码
- 
-```ts
-// 只需要改造provide函数即可
-export function provide(key, val) {
-  // 数据需要存储在当前的实例上面
-  const instance = getCurrentInstance();
-
-  if (instance) {
-    let { provides } = instance;
-    // 正对多层组件，需要把当前组件的__proto__绑定到父级上面，形成原型链，可以访问到最顶层的数据
-    const parentProvides = instance.parent && instance.parent.provide;
-    // 只有父级的provides和当前的provides是相同的时候为第一次调用provide,后续调用就不需要绑定原型了
-    if (parentProvides === provides) {
-      provides = instance.providers = Object.create(parentProvides || {});
-    }
-    provides[key] = val;
-  }
+// 对外导出createApp
+export function createApp(...args) {
+  return render.createApp(...args);
 }
+// 需要使用runtime-core里面的所有内容，因为里面有的变量是在闭包中进行使用的
+export * from 'runtime-core'
 ```
 
-# 总结
-本期主要完成了`getCurrentInstance,provide,inject`的实现，在`getCurrentInstance`中只是用了一个中间变量，而`provide`是把数据存在当前的`instance`当中，`provide`里面还用到了**原型链**的知识，通过原型的方式来查询key是否存在,不存在则往上查找
+>思考🤔🤗🤔： 处理完`runtime-test`就需要在`runtime-core`中进行引用，**直接在runtime-core中引用么？**
+
+那肯定是不行的，`runtime-test`里面引用`runtime-core`,如果`runtime-core`在引用`runtime-test`的话，**那就是循环引用了**,𝒮ℴ, 𝒽ℴ𝓌 𝓉ℴ 𝓇ℯ𝓈ℴ𝓁𝓋ℯ 𝒾𝓉 ?
+
+解决方式： 
+**在上一级的package.json上加入runtime-test这个包，那么在runtime-core中就能引用啦！**😝😝😝
+
+# 测试效果
+
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ab00f45a05084bd88ae7424944279ac1~tplv-k3u1fbpfcp-watermark.image?)
