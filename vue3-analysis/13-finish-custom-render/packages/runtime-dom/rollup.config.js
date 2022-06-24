@@ -1,14 +1,15 @@
 import pkg from './package.json'
 import dts from 'rollup-plugin-dts'
 import esbuild from 'rollup-plugin-esbuild'
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const entry = [
   './src/index.ts',
 ]
 
 const external = [
-  'shared',
-  'runtime-core'
+  // 'shared',
+  // 'runtime-core'
 ]
 
 /**
@@ -22,9 +23,11 @@ export default () => [
       format: 'esm',
     },
     plugins: [
+      nodeResolve(),
       esbuild({
-        target: 'node14',
+        target: 'es2016',
       }),
+
     ],
     external
   },
@@ -35,9 +38,12 @@ export default () => [
       format: 'cjs',
     },
     plugins: [
+      nodeResolve(),
       esbuild({
-        target: 'node14',
+        target: 'es2016',
+        minify: true
       }),
+
     ],
     external
   },
@@ -48,6 +54,7 @@ export default () => [
       format: 'esm',
     },
     plugins: [
+      nodeResolve(),
       dts(),
     ],
   },
