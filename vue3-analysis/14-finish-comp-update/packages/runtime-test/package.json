@@ -1,0 +1,20 @@
+{
+  "name": "runtime-test",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/runtime-test.cjs.js",
+  "module": "dist/runtime-test.esm-bundler.js",
+  "types": "dist/runtime-test.d.ts",
+  "scripts": {
+    "build": "rimraf dist & rollup -c",
+    "buildDev": "rollup -c"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "shared":"workspace:shared@*",
+    "runtime-core":"workspace:runtime-core@*"
+  }
+}
