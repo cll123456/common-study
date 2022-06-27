@@ -12,13 +12,19 @@ function createElement(type) {
 
 }
 
-function patchProps(el, key, value) {
+function patchProps(el, key, oldValue, newValue) {
 
   if (isOn(key)) {
     // 注册事件
-    el.addEventListener(key.slice(2).toLowerCase(), value)
+    el.addEventListener(key.slice(2).toLowerCase(), newValue)
+  } else {
+    // 新值没有，则移除
+    if (newValue === null || newValue === undefined) {
+      el.removeAttribute(key)
+    } else {
+      el.setAttribute(key, newValue)
+    }
   }
-  el.setAttribute(key, value)
 }
 
 

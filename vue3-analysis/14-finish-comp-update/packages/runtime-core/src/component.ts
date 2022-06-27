@@ -28,6 +28,10 @@ export function createComponentInstance(vnode, parent) {
     provides: parent ? parent.provides : {},
     // 保存父级组件的实例，用于inject
     parent,
+    // 是否挂载
+    isMounted: false,
+    // 当前的组件树
+    subtree: {}
   }
 
   instance.emit = emit.bind(null, instance);
@@ -62,7 +66,7 @@ function setupStatefulComponent(instance: any) {
     setCurrentInstance(instance);
     // 执行setup，并且获取到setup的结果
     const setupResult = setup(shallowReadonly(instance.props), { emit: instance.emit });
-    // setCurrentInstance(null);
+    setCurrentInstance(null);
     // 处理setup的结果
     handleSetupResult(instance, setupResult);
   }

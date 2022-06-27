@@ -1,3 +1,4 @@
+import { effect } from "reactivity"
 import { ShapeFlags } from "shared"
 import { createAppAPI } from "./apiCreateApp"
 import { createComponentInstance, setupComponent } from "./component"
@@ -5,10 +6,10 @@ import { Fragment, Text } from "./vnode"
 
 export function createRenderer(options) {
   const {
-    createElement,
-    patchProps,
-    insert,
-    setElementText
+    createElement: hostCreateElement,
+    patchProps: hostPatchProps,
+    insert: hostInsert,
+    setElementText: hostSetElementText
   } = options
 
   /**
@@ -18,28 +19,28 @@ export function createRenderer(options) {
    */
   function render(vnode, container) {
     // 调用patch
-    patch(vnode, container, null)
+    patch(null, vnode, container, null)
   }
 
 
-  function patch(vnode, container, parentComponent) {
-    const { type } = vnode
+  function patch(n1, n2, container, parentComponent) {
+    const { type } = n2
     switch (type) {
       case Fragment:
         // 处理slot中的fragment节点
-        processFragment(vnode, container, parentComponent)
+        processFragment(n2, container, parentComponent)
         break;
       case Text:
-        processTextComponent(vnode, container)
+        processTextComponent(n2, container)
         break;
       default:
         // 判断是处理组件，还是处理元素
-        if (vnode.shapeflag & ShapeFlags.STATE_COMPONENT) {
+        if (n2.shapeflag & ShapeFlags.STATE_COMPONENT) {
           // 处理组件
-          processComponent(null, vnode, container, parentComponent)
-        } else if (vnode.shapeflag & ShapeFlags.ELEMENT) {
+          processComponent(n1, n2, container, parentComponent)
+        } else if (n2.shapeflag & ShapeFlags.ELEMENT) {
           // 处理元素
-          processElement(null, vnode, container, parentComponent)
+          processElement(n1, n2, container, parentComponent)
         }
         break
     }
@@ -68,9 +69,11 @@ export function createRenderer(options) {
       // 挂载组件
       mountComponent(n2, container, parentComponent)
     } else {
-      // 更新组件
+
     }
   }
+
+
 
 
   function mountComponent(vnode, container, parentComponent) {
@@ -88,39 +91,85 @@ export function createRenderer(options) {
 
 
   function setupRenderEffect(instance: any, vnode: any, container: any) {
-    // 获取到vnode的子组件,传入proxy进去
-    const { proxy } = instance
+    effect(() => {
+      if (!instance.isMounted) {
+        // 获取到vnode的子组件,传入proxy进去
+        const { proxy } = instance
+        const subtree = instance.render.call(proxy)
+        instance.subtree = subtree
 
-    const subtree = instance.render.call(proxy)
+        // 遍历children
+        patch(null, subtree, container, instance)
 
-    // 遍历children
-    patch(subtree, container, instance)
+        // 赋值vnode.el,上面执行render的时候，vnode.el是null
+        vnode.el = subtree.el
 
-    // 赋值vnode.el,上面执行render的时候，vnode.el是null
-    vnode.el = subtree.el
+        // 渲染完成
+        instance.isMounted = true
+      } else {
+        // 更新操作
+        // 获取到vnode的子组件,传入proxy进去
+        const { proxy } = instance
+        const preSubtree = instance.subtree
+        const nextSubtree = instance.render.call(proxy)
+        // 遍历children
+        patch(preSubtree, nextSubtree, container, instance)
+        instance.subtree = nextSubtree
+      }
+
+    })
+
   }
 
   function processElement(n1, n2, container: any, parentComponent) {
     // 判断是挂载还是更新
     if (n1) {
-      // 更新
+      // 拿到新旧属性
+      const oldProps = n1.props
+      const newProps = n2.props
+      const el = (n2.el = n1.el)
+      // 更新属性
+      patchProps(el, oldProps, newProps)
+
     } else {
       // 挂载
       mountElement(n2, container, parentComponent)
     }
   }
 
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps === newProps) {
+      return
+    }
+
+    for (let key in newProps) {
+      if (key in oldProps) {
+        // 需要进行更新操作
+        hostPatchProps(el, key, oldProps[key], newProps[key])
+      }
+    }
+
+    // 新属性里面没有旧属性，则删除
+    for (let key in oldProps) {
+      if (key in newProps) {
+        continue
+      } else {
+        hostPatchProps(el, key, oldProps[key], null)
+      }
+    }
+
+  }
   function mountElement(vnode: any, container: any, parentComponent) {
     // 创建元素
     // 自定义创建元素，
-    const el = createElement(vnode.type)
+    const el = hostCreateElement(vnode.type)
     // 设置vnode的el
     vnode.el = el
     // 设置属性
     const { props } = vnode
 
     for (let key in props) {
-      patchProps(el, key, props[key])
+      hostPatchProps(el, key, null, props[key])
     }
     // 处理子元素
     const children = vnode.children
@@ -129,16 +178,16 @@ export function createRenderer(options) {
       mountChildren(children, el, parentComponent)
     } else if (vnode.shapeflag & ShapeFlags.TEXT_CHILDREN) {
       // 自定义插入文本
-      setElementText(el, String(children))
+      hostSetElementText(el, String(children))
     }
     // 挂载元素
-    insert(el, container)
+    hostInsert(el, container)
   }
 
 
   function mountChildren(children, container, parentComponent) {
     children.forEach((child) => {
-      patch(child, container, parentComponent)
+      patch(null, child, container, parentComponent)
     })
   }
 
