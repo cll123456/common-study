@@ -1,5 +1,5 @@
 node_modules
 .DS_Store
-packages/dist
+vue3-analysis/**/dist
 dist-ssr
 *.local
