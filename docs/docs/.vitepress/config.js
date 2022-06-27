@@ -21,6 +21,8 @@ module.exports = {
       },
     ],
   ],
+  // 项目的根路径
+  base: "/common-study/",
   // 语言
   lang: 'zh-CN',
 
