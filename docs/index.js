@@ -3,19 +3,6 @@ const path = require('path');
 
 const resolve = (dirname) => path.resolve(__dirname, dirname);
 
-
-// 读取指定目录下面的文件，来读取下一级的readme.md文件，然后将它移动到对应目录的下面，当作是docs的一个文件夹
-
-let dirName = 'vue3-analysis'
-
-// 拼接源码的路径
-const originPath = resolve(`./../${dirName}`)
-
-const dirFiles = fs.readdirSync(originPath)
-
-// 构建docs 目录的路径
-const docsPath = resolve(`./docs/${dirName}`)
-
 /**
  * 是否存在目录
  * @param {*} docsPath 
@@ -23,44 +10,70 @@ const docsPath = resolve(`./docs/${dirName}`)
  */
 const isExitFirDir = (docsPath) => fs.existsSync(docsPath)
 
-if (!isExitFirDir(docsPath)) {
-  // 创建目录
-  fs.mkdirSync(docsPath)
-}
-// 存在等待文件移入
 
-// 找到源码的文件的readme.md文件
-// console.log(dirFiles)
+// 读取指定目录下面的文件，来读取下一级的readme.md文件，然后将它移动到对应目录的下面，当作是docs的一个文件夹
 
-const sidebarItems = []
+/**
+ * 自动生成slidebar.json文件
+ * @param {*} dirName 目录名称
+ * @param {*} index 索引
+ * @param {*} title 一级标题
+ */
+const autoGenrateSlidebarJson = (dirName, index, title) => {
+  // let dirName = 'vue3-analysis'
 
-dirFiles.forEach(file => {
-  if (file === 'readme.md') {
-    // 将文件移动到docs目录下面
-    fs.copyFileSync(`${originPath}/${file}`, `${docsPath}/index.md`)
-    sidebarItems.push({ text: '介绍', link: `/${dirName}/index.md` })
-  } else {
-    // 将文件下面的readme.md文件移入到docs目录下面
-    const readmePath = `${originPath}/${file}/readme.md`
-    if (fs.existsSync(readmePath)) {
-      fs.copyFileSync(readmePath, `${docsPath}/${file}.md`)
-      sidebarItems.push({ text: file, link: `/${dirName}/${file}.md` })
-    }
+  // 拼接源码的路径
+  const originPath = resolve(`./../${dirName}`)
+
+  const dirFiles = fs.readdirSync(originPath)
+
+  // 构建docs 目录的路径
+  const docsPath = resolve(`./docs/${dirName}`)
+
+  if (!isExitFirDir(docsPath)) {
+    // 创建目录
+    fs.mkdirSync(docsPath)
   }
-})
 
-// 对sidebar进行排序
-sidebarItems.sort((a, b) => {
-  // 拿到 9-init-comp-mount 进行排序
-  const aText = a.text.split('-')[0]
-  const bText = b.text.split('-')[0]
-  return Number(aText) > Number(bText) ? 1 : -1
-})
+  const sidebarItems = []
 
-// console.log(sidebarItems)
+  dirFiles.forEach(file => {
+    if (file === 'readme.md') {
+      // 将文件移动到docs目录下面
+      fs.copyFileSync(`${originPath}/${file}`, `${docsPath}/index.md`)
+      sidebarItems.push({ text: '介绍', link: `/${dirName}/index.md` })
+    } else {
+      // 将文件下面的readme.md文件移入到docs目录下面
+      const readmePath = `${originPath}/${file}/readme.md`
+      if (fs.existsSync(readmePath)) {
+        fs.copyFileSync(readmePath, `${docsPath}/${file}.md`)
+        sidebarItems.push({ text: file, link: `/${dirName}/${file}.md` })
+      }
+    }
+  })
 
-// 在slidebar.json写入sidebarItems
-const slideBarJson = require('./docs/slidebar.json')
-slideBarJson[0].items = sidebarItems
-// console.log(JSON.stringify(slideBarJson))
-fs.writeFileSync(resolve(`./docs/slidebar.json`), JSON.stringify(slideBarJson))
+  // 对sidebar进行排序
+  sidebarItems.sort((a, b) => {
+    // 拿到 9-init-comp-mount 进行排序
+    const aText = a.text.split('-')[0]
+    const bText = b.text.split('-')[0]
+    return Number(aText) > Number(bText) ? 1 : -1
+  })
+
+
+  // 在slidebar.json写入sidebarItems
+  const slideBarJson = require('./docs/slidebar.json')
+  slideBarJson[index].items = sidebarItems
+  slideBarJson[index].collapsible = true;
+  slideBarJson[index].title = title
+  fs.writeFileSync(resolve(`./docs/slidebar.json`), JSON.stringify(slideBarJson))
+}
+
+
+
+
+(() => {
+  // 自动生成slidebar.json
+  autoGenrateSlidebarJson('vue3-analysis', 0, 'vue3源码分析')
+
+})()
