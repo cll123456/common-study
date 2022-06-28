@@ -117,9 +117,7 @@ export function createRenderer(options) {
         patch(preSubtree, nextSubtree, container, instance)
         instance.subtree = nextSubtree
       }
-
     })
-
   }
 
   function processElement(n1, n2, container: any, parentComponent) {

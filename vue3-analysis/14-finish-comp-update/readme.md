@@ -5,187 +5,304 @@ theme: qklhk-chocolate
 # 引言
 <<往期回顾>>
 
-1.  [vue3源码分析——rollup打包monorepo](https://juejin.cn/post/7108325858489663495 "https://juejin.cn/post/7108325858489663495")
-1.  [vue3源码分析——实现组件的挂载流程](https://juejin.cn/post/7109002484064419848 "https://juejin.cn/post/7109002484064419848")
-1.  [vue3源码分析——实现props,emit，事件处理等](https://juejin.cn/post/7110133885140221989 "https://juejin.cn/post/7110133885140221989")
-1.  [vue3源码分析——实现slots](https://juejin.cn/post/7111212195932799013 "https://juejin.cn/post/7111212195932799013")
-5. [vue3源码分析——实现组件通信provide,inject](https://juejin.cn/post/7111682377507667999)
+1.  [vue3源码分析——实现组件通信provide,inject](https://juejin.cn/post/7111682377507667999 "https://juejin.cn/post/7111682377507667999")
+2. [vue3源码分析——实现createRenderer，增加runtime-test](https://juejin.cn/post/7112349410528329758)
 
-本期来实现， **vue3的自定义渲染器，增加runtime-test子包**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/13-finish-custom-render)
+本期来实现， **vue3更新流程，更新元素的props,以及更新元素的child**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/14-finish-comp-update)
 
 # 正文
-`createRenderer`的作用是： **实现vue3的runtime-core的核心，不只是仅仅的渲染到dom上，还可以渲染到canvas,webview等指定的平台**
-
->请思考🤔🤔🤔，createRenderer是怎么做到的呢？
+> 上期文章增加了`runtime-test`的测试子包，接下来的所有代码都会基于该库来进行测试,vue3是怎么做到element的更新呢，更新的流程是咋样的呢？请看下面流程图
 
 
-# 设计createRenderer函数
-createRenderer顾名思义就是创造一个`render`(可以直接导出一个render函数),现在咱们的是直接在`render.ts`中对外导`render函数`出提供给createApp中使用
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/97e1fa7c44b44346b43b3ab9dcc6c620~tplv-k3u1fbpfcp-watermark.image?)
+
+## 分析
+
+在上面流程图中，如果在`setup`中有一个对象`obj`,并且赋值为` ref({a:1})`，然后通过某种方式重新赋值为**2**，就会触发更新流程；
+
+1. 在**set操作中，都会进行trigger**;
+2. `trigger` 后则是执行对于的**run方法**;
+3. 最后是这个`run`是通过`effect`来进行收集 
+
+> attention！！！🎉🎉🎉
+>
+>  effect 来收集的run函数是在哪里收集，收集的是啥呢？
 
 
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/24cbd4e00c8b40e4862d449523ef55cd~tplv-k3u1fbpfcp-watermark.image?)
+effect收集依赖肯定是在`mountElement`里面，但是具体在哪里呢？在`mountElement`中，里面有三个函数
 
-对于createApp而言，需要render函数，那么咱们可以通过函数的参数穿进来，那就变成这个样子的形式
+- `createComponentInstance`:创建实例
+- `setupComponent`: 设置组件的状态,设置render函数
+- `setupRenderEffect`: 对组件**render**函数进行依赖收集
 
+看到上面三个函数，想必大家都知道是在哪个函数进行effect了吧！😊😊😊
 
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0cb034c687cf4350804a63cd3dfcbd22~tplv-k3u1fbpfcp-watermark.image?)
-
-## 编码
-
+## 编码流程
 
 ```ts
-// 通过上面的分析，先把createApp给改造一下,需要一个新的函数来包裹，并且传入render函数
+// 改造setupRenderEffect函数之前，需要在实例上加点东西，判断是否完成挂载，如果完成挂载则是更新操作，还有则需要拿到当前的组件的children tree
 
-export function createAppApi(render){
- return function createApp(rootComponent){
-  // ……原有的逻辑不变
- }
+export function createComponentInstance(vnode, parent) {
+  const instance = {
+   ...其他属性
+    // 是否挂载
+    isMounted: false,
+    // 当前的组件树
+    subtree: {}
+  }
 }
 
-// 在createAppApi里面需要render，那就在createRenderer里面调用并且给他，
-// 返回一个新的createApp
-export function createRenderer(){
-     function render(vnode, container) {
-        // 调用patch
-        patch(vnode, container, null)
+ function setupRenderEffect(instance: any, vnode: any, container: any) {
+ //  添加effect函数
+    effect(() => {
+      if (!instance.isMounted) {
+        // 获取到vnode的子组件,传入proxy进去
+        const { proxy } = instance
+        const subtree = instance.render.call(proxy)
+        instance.subtree = subtree
+
+        // 遍历children
+        patch(null, subtree, container, instance)
+
+        // 赋值vnode.el,上面执行render的时候，vnode.el是null
+        vnode.el = subtree.el
+
+        // 渲染完成
+        instance.isMounted = true
+      } else {
+        // 更新操作
+        // 获取到vnode的子组件,传入proxy进去
+        const { proxy } = instance
+        const preSubtree = instance.subtree
+        const nextSubtree = instance.render.call(proxy)
+        // 遍历children
+        patch(preSubtree, nextSubtree, container, instance)
+        instance.subtree = nextSubtree
       }
- // ……省略其他所有的函数
- 
- return {
-  // 这样设计是不是对外导出了一个新的createAPP哇
-  createApp: createAppApi(render)
- }
-}
+    })
+  }
+
 ```
 
+> 上面就是关键的更新元素的步骤，接下来从`TDD`的开发模式，来实现**element属性的更新和element元素的更新**
 
-# 渲染平台
+# 属性更新
 
-既然是自定义渲染平台，那肯定是需要修改元素的挂载逻辑，并且把需要挂载的平台给传入进来
+属性更新，毫无疑问的是，元素中的属性进行更新，新增，修改和删除等！
 
 
-## 分析
-
-**目前代码里面默认是渲染到dom**，在mountElement里面使用了`document.createElement`, `dom.setAttribute`, `dom.innerHtml`等逻辑都是用来处理dom操作，其他的平台挂载元素的方式是不一样的，那么怎么解决这个问题呢？
-
-需要解决这个问题，也是非常简单的，既然咱们不知道是挂载到哪里，那直接通过`createRenderer`里面传入进来就ok啦😄😄😄
-目前用到的主要是四个地方涉及到dom操作，把这四个地方统统封装成函数，然后通过`createRenderer`里面作为options里面传入即可
-
-## 编码
+## 测试用例
 
 ```ts
-在createRenderer里面加入参数options,并且结构出四个函数
+test('test update props', () => {
+    const app = createApp({
+      name: 'App',
+      setup() {
+        const props = ref({
+          foo: 'foo',
+          bar: 'bar',
+          baz: 'baz'
+        })
 
-export function createRenderer(options) {
-  const {
-   // 创建元素
-    createElement,
-    // 绑定key
-    patchProps,
-    // 插入操作
-    insert,
-    // 设置文本
-    setElementText
-  } = options
-  
-  
-    function mountElement(vnode: any, container: any, parentComponent) {
-        const el = createElement(vnode.type)
-    // 设置vnode的el
-    vnode.el = el
-    // 设置属性
-    const { props } = vnode
+        const changeFoo = () => {
+          props.value.foo = 'foo1'
+        }
 
-    for (let key in props) {
-      patchProps(el, key, props[key])
-    }
-    // 处理子元素
-    const children = vnode.children
-    if (vnode.shapeflag & ShapeFlags.ARRAY_CHILDREN) {
-      // 数组
-      mountChildren(children, el, parentComponent)
-    } else if (vnode.shapeflag & ShapeFlags.TEXT_CHILDREN) {
-      // 自定义插入文本
-      setElementText(el, String(children))
-    }
-    // 挂载元素
-    insert(el, container)
-    }
-  }
-```
-> 这么改造，目前`createRenderer`的功能实现了，但是会发现所有用的`createApp`的测试用例都不行了，**由于咱们没目前没有对外导出createApp**。
+        const changeBarToUndefined = () => {
+          props.value.bar = undefined
+        }
 
-# runtime-test
-从目前来说，本块的内容可以说是 `runtime-dom`,因为`runtime-test`对外提供的确实是dom环境的测试，方便用于`runtime-core`的测试
+        const deleteBaz = () => {
+          props.value = {
+            foo: 'foo',
+            bar: 'bar'
+          }
+        }
+        return {
+          props,
+          deleteBaz,
+          changeFoo,
+          changeBarToUndefined,
+        }
+      },
+      render() {
+        return h('div', { class: 'container', ...this.props }, [h('button', { onClick: this.changeFoo, id: 'changeFoo' }, 'changeFoo'), h('button', { onClick: this.changeBarToUndefined, id: 'changeBarToUndefined' }, 'changeBarToUndefined'), h('button', { onClick: this.deleteBaz, id: 'deleteBaz' }, 'deleteBaz')])
+      }
+    })
 
-> 新建子包的过程不在这里描述哈，有兴趣的可以[查看](https://juejin.cn/post/7104559841967865863)
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    // 默认挂载
+    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo" bar="bar" baz="baz">省略button</div>')
 
-`runtime-test`需要的依赖是：
+    // 删除属性
+    const deleteBtn = appDoc?.querySelector('#deleteBaz') as HTMLElement;
+    deleteBtn?.click();
+    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo" bar="bar">省略button</div>')
 
+    // 更新属性
+    const changeFooBtn = appDoc?.querySelector('#changeFoo') as HTMLElement;
+    changeFooBtn?.click();
+    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1" bar="bar">省略button</div>')
 
-```ts
- "dependencies": {
-    "shared":"workspace:shared@*",
-    "runtime-core":"workspace:runtime-core@*"
-  }
+    // 属性置undefined
+    const changeBarToUndefinedBtn = appDoc?.querySelector('#changeBarToUndefined') as HTMLElement;
+    changeBarToUndefinedBtn?.click();
+    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1">省略button</div>')
+  })
 ```
 
 ## 分析
-`runtime-test`的作用是对外提供一个`createApp`函数，那就需要调用createRender来创建一个customRender，customRender里面有createApp函数。 调用createRender又需要传入一个options,options是我们当前对应平台的4个函数，分别是：
+通过上面的需求，分析以下内容：
 
-- createElement： 创建dom
-- patchProps: 处理属性
-- insert: 将某个元素插入到哪里
-- setElementText： 设置文本
+- 删除属性
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/07721ffff2f44b878ff43a161f4e86e8~tplv-k3u1fbpfcp-watermark.image?)
+
+- 更新属性
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/374faa98600d4ae0a6f0e06b5e534d98~tplv-k3u1fbpfcp-watermark.image?)
+
+- 将属性设置为null,undefined
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/98f3b251ce6a4d0b918ab1be5fa0ef58~tplv-k3u1fbpfcp-watermark.image?)
+
+问题解决：
+1. 在processElement中，存入老节点则需要进行更新操作
+2. 更新分为三种情况
 
 ## 编码
 
+
 ```ts
-function createElement(type) {
-  return document.createElement(type);
+ function processElement(n1, n2, container: any, parentComponent) {
+    // 判断是挂载还是更新
+    if (n1) {
+      // 拿到新旧属性
+      const oldProps = n1.props
+      const newProps = n2.props
+      // 可能新的点击没有el
+      const el = (n2.el = n1.el)
+      // 更新属性
+      patchProps(el, oldProps, newProps)
 
-}
-
-function patchProps(el, key, value) {
-
-  if (isOn(key)) {
-    // 注册事件
-    el.addEventListener(key.slice(2).toLowerCase(), value)
+    } else {
+      // 挂载
+      mountElement(n2, container, parentComponent)
+    }
   }
-  el.setAttribute(key, value)
+  
+  // 更新属性
+ function patchProps(el, oldProps, newProps) {
+ // 属性相同不进行更新
+    if (oldProps === newProps) {
+      return
+    }
+    // 遍历新的属性
+    for (let key in newProps) {
+    // 如果存在与旧属性中，说明属性发生变化，需要进行修改操作
+      if (key in oldProps) {
+        // 需要进行更新操作
+        hostPatchProps(el, key, oldProps[key], newProps[key])
+      }
+    }
+
+    // 新属性里面没有旧属性，则删除
+    for (let key in oldProps) {
+      if (key in newProps) {
+        continue
+      } else {
+        hostPatchProps(el, key, oldProps[key], null)
+      }
+    }
+  }
+  
+  // 对比新老节点
+  function patchProps(el, key, oldValue, newValue) {
+    // 新值没有，则移除
+    if (newValue === null || newValue === undefined) {
+      el.removeAttribute(key)
+    } else {
+    // 重新赋值
+      el.setAttribute(key, newValue)
+    }
 }
-
-
-function insert(el, container) {
-  container.append(el)
-}
-
-function setElementText(el, text) {
-  el.textContent = text;
-}
-
-const render: any = createRenderer({
-  createElement,
-  patchProps,
-  insert,
-  setElementText
-});
-
-// 对外导出createApp
-export function createApp(...args) {
-  return render.createApp(...args);
-}
-// 需要使用runtime-core里面的所有内容，因为里面有的变量是在闭包中进行使用的
-export * from 'runtime-core'
 ```
 
->思考🤔🤗🤔： 处理完`runtime-test`就需要在`runtime-core`中进行引用，**直接在runtime-core中引用么？**
+> 完成上面的编码，对应的测试用例也是可以通过的
 
-那肯定是不行的，`runtime-test`里面引用`runtime-core`,如果`runtime-core`在引用`runtime-test`的话，**那就是循环引用了**,𝒮ℴ, 𝒽ℴ𝓌 𝓉ℴ 𝓇ℯ𝓈ℴ𝓁𝓋ℯ 𝒾𝓉 ?
+# 更新children
 
-解决方式： 
-**在上一级的package.json上加入runtime-test这个包，那么在runtime-core中就能引用啦！**😝😝😝
+> children的更新里面包含diff算法哦！
 
-# 测试效果
+在设计`h()`函数中，有三个属性，第一个是type,第二个是属性，第三个则是children，**children的类型有两种，一种是数组，另一种则是文本.** 那么针对这两种情况，都需要分情况讨论，则会存在4种情况:
+- array ---> text
+- text ---> array
+- text ---> text
+- array ---> array： 这里需要使用diff算法
 
-![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ab00f45a05084bd88ae7424944279ac1~tplv-k3u1fbpfcp-watermark.image?)
+由于测试用例比较占用文本，本个篇幅则省略测试用例，有需要的同学请查看[源码](https://github.com/cll123456/common-study/tree/master/vue3-analysis/14-finish-comp-update)获取
+
+## 更新array---> text
+老的节点是array,新节点是text,是不是需要把老的先删除，然后在给当前节点进行赋值哇！
+
+
+```ts
+// 在processElement 种更新属性下面，加入一个新的方法，更新children
+ function patchChildren(oldVNodes, newVNodes, container, parentComponent) {
+    // 总共有4种情况来更新children
+    // 1. children从array变成text
+    const oldChildren = oldVNodes.children
+    const newChildren = newVNodes.children
+    const oldShapeflag = oldVNodes.shapeflag
+    const newShapeflag = newVNodes.shapeflag
+    if(Array.isArray(oldChildren) && typeof newChildren === string){
+     // 删除老节点
+     oldChildren.forEach(child=> {
+       const parent = child.parentNode;
+       if(parent){
+          parent.removeChild(child)
+       }
+     })
+     // 添加文本节点
+     container.textContent = newChildren
+    }
+}
+```
+
+## 更新 text ---> array
+更新这个节点则是先把老的节点给删除，然后在挂载新的节点
+
+
+```ts
+// 接着上面的判断
+else if(typeof oldChildren === 'string' && Array.isArray(newChildren)){
+ // 删除老节点
+  container.textContent = ''
+  // 挂载新的节点’
+  newChildren.forEach(child => {
+     patch(null, child, container, parentComponent)
+  })
+}
+```
+
+## 更新 text ---> text
+更新文本节点则更简单，直接判断赋值即可
+
+```ts
+// 接着上面的判断
+else if(typeof oldChildren === 'string' && typeof newChildren === 'string' && oldChildren !== newChildren){
+ // 重新赋值
+  container.textContent = newChildren
+}
+```
+
+> 上面这么写代码是不是有点小重复哇，这是为了方便大家的理解，优化好的代码已经在[github](https://github.com/cll123456/common-study/tree/master/vue3-analysis/14-finish-comp-update)等你了哦
+
+
+## 更新 array  ---> array
+
+> 本文篇幅有限，diff算法就留给下篇文章吧
+
+# 总结
+本文主要实现了vue3 element的更新，**更新主要是在mountElement种的setupRenderEffect中来收集整个render函数的依赖，当reder函数中的响应式数据发生变化，则调用当前的run函数来触发更新操作！** 然后还实现了vue3中的属性的更新，属性主要有三种情况： **两者都存在，执行修改；老的存在，新的不存在，执行删除；老的被设置成null或者undefined也需要执行删除。**，最后还实现了vue中更新children，主要是针对 text_children和array_child的两两相互更新，最后还差一个都是数组的没有实现，加油！👍👍👍
