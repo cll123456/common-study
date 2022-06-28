@@ -5,7 +5,6 @@ const slideBarJson = require('./../slidebar.json')
  */
 module.exports = {
   title: "common-study Doc", // 顶部左侧标题
-  base: "", // 项目的根路径
   head: [
     // 设置 描述 和 关键词
     [
