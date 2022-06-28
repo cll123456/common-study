@@ -103,4 +103,90 @@ describe('compUpdate', () => {
     expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
   })
 
+  test('test update children array -> text', () => {
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+
+        temp = flag
+
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? [h('p', {}, '1'), h('p', {}, '2')] : 'newText')
+      }
+    })
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+
+    const containerDom = document.querySelector('.container')
+    // 初步挂载
+    const containerHtml = containerDom?.innerHTML;
+    expect(containerHtml).toBe('<p>1</p><p>2</p>')
+
+    // 更新children,将数组改成文本
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('newText')
+  })
+
+  test('test update children text -> text', () => {
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+
+        temp = flag
+
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? 'oldText' : 'newText')
+      }
+    })
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+
+    const containerDom = document.querySelector('.container')
+    // 初步挂载
+    const containerHtml = containerDom?.innerHTML;
+    expect(containerHtml).toBe('oldText')
+
+    // 更新children,将数组改成文本
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('newText')
+  })
+
+  test('test update children text -> array', () => {
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+
+        temp = flag
+
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? 'oldText' : [h('p', {}, '1'), h('p', {}, '2')])
+      }
+    })
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+
+    const containerDom = document.querySelector('.container')
+    // 初步挂载
+    const containerHtml = containerDom?.innerHTML;
+    expect(containerHtml).toBe('oldText')
+
+    // 更新children,将数组改成array
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('<p>1</p><p>2</p>')
+  })
 })

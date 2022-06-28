@@ -9,7 +9,8 @@ export function createRenderer(options) {
     createElement: hostCreateElement,
     patchProps: hostPatchProps,
     insert: hostInsert,
-    setElementText: hostSetElementText
+    setElementText: hostSetElementText,
+    remove: hostRemove
   } = options
 
   /**
@@ -131,11 +132,15 @@ export function createRenderer(options) {
       // 更新属性
       patchProps(el, oldProps, newProps)
 
+      // 更新children
+      patchChildren(n1, n2, el, parentComponent)
+
     } else {
       // 挂载
       mountElement(n2, container, parentComponent)
     }
   }
+
 
   function patchProps(el, oldProps, newProps) {
     if (oldProps === newProps) {
@@ -158,6 +163,49 @@ export function createRenderer(options) {
       }
     }
 
+  }
+
+  function patchChildren(oldVNodes, newVNodes, container, parentComponent) {
+    // 总共有4种情况来更新children
+    // 1. children从array变成text
+    const oldChildren = oldVNodes.children
+    const newChildren = newVNodes.children
+    const oldShapeflag = oldVNodes.shapeflag
+    const newShapeflag = newVNodes.shapeflag
+
+    if (newShapeflag & ShapeFlags.TEXT_CHILDREN) {
+      if (oldShapeflag & ShapeFlags.TEXT_CHILDREN) {
+        // 新的和老的都是文本
+        if (oldChildren !== newChildren) {
+          // 更新文本
+          hostSetElementText(container, newChildren)
+        }
+      } else {
+        // 新的是文本，老的是array
+        // 1. 删除老的节点
+        unmountChildren(oldChildren)
+        // 2. 挂载新的文本节点
+        hostSetElementText(container, newChildren)
+      }
+    } else {
+      // 新的是array
+      if (oldShapeflag & ShapeFlags.TEXT_CHILDREN) {
+        // 老的是文本，新的是array
+        // 1. 删除老的文本节点,设置为空
+        hostSetElementText(container, '')
+        // 挂在新的节点
+        mountChildren(newChildren, container, parentComponent)
+      } else {
+        // 新的和老的都是array，使用diff算法
+
+      }
+    }
+  }
+
+  function unmountChildren(children) {
+    children.forEach(child => {
+      hostRemove(child.el)
+    })
   }
   function mountElement(vnode: any, container: any, parentComponent) {
     // 创建元素

@@ -36,11 +36,20 @@ function setElementText(el, text) {
   el.textContent = text;
 }
 
+function remove(el) {
+  // 拿到父级的节点
+  const parent = el.parentNode
+  if (parent) {
+    parent.removeChild(el)
+  }
+}
+
 const render: any = createRenderer({
   createElement,
   patchProps,
   insert,
-  setElementText
+  setElementText,
+  remove
 });
 
 export function createApp(...args) {
