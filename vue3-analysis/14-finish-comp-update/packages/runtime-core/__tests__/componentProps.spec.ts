@@ -1,4 +1,3 @@
-import { ref } from "reactivity";
 import { createApp, h } from "runtime-test"
 describe('componentProps', () => {
   let appElement: Element;
@@ -101,15 +100,15 @@ describe('componentProps', () => {
         emit('click')
 
         // 验证emit1，可以执行父组件的函数
-        expect(count.value).toBe(2)
+        expect(count).toBe(2)
 
         // 3 emit 可以传递参数
         emit('clickNum', 5)
         // 验证emit传入参数
-        expect(count.value).toBe(7)
+        expect(count).toBe(7)
         // 4 emit 可以使用—的模式
         emit('click-num', -5)
-        expect(count.value).toBe(2)
+        expect(count).toBe(2)
       }
     }
 
@@ -122,12 +121,12 @@ describe('componentProps', () => {
       },
       setup() {
         const click = () => {
-          count.value++
+          count++
         }
-        count = ref(1)
+        count = 1
 
         const clickNum = (num) => {
-          count.value = Number(count.value) + Number(num)
+          count = Number(count) + Number(num)
         }
         return {
           click,
