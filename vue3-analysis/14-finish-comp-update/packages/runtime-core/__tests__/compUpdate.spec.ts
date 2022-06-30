@@ -39,9 +39,9 @@ describe('compUpdate', () => {
     expect(containerHtml).toBe('<p>1</p><button id="myBtn">button</button>')
 
 
-    const btnDom = containerDom?.querySelector('#myBtn') as HTMLElement;
+    // const btnDom = containerDom?.querySelector('#myBtn') as HTMLElement;
 
-    btnDom?.click();
+    // btnDom?.click();
     // 更新children在后面
     // expect(containerDom?.innerHTML).toBe('<p>2</p><button id="myBtn">button</button>')
   })
@@ -189,4 +189,252 @@ describe('compUpdate', () => {
     temp.value = false
     expect(containerDom?.innerHTML).toBe('<p>1</p><p>2</p>')
   })
+
+  test('test update children array -> array old > new left', () => {
+    // 数组对比，新的比老的左侧短，删除老的
+    const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
+    const newNodes = [h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
+    // a b c   i = 0 e1 = 0 e2 = -1
+    //  b c
+    // 要求 i > e2 && i <= e1
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+
+        temp = flag
+
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newNodes)
+      }
+    })
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+
+    // 改变属性
+    temp.value = false
+
+    expect(containerDom?.innerHTML).toBe('<p>B</p><p>C</p>')
+  })
+
+  test('test update children array -> array old > new right', () => {
+    // 数组对比，新的比老的左侧短，删除老的
+    const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
+    const newNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
+    // a b c   i = 2 e1 = 2 e2 = 1
+    // a b  
+    // 要求 i > e2 && i <= e1
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+
+        temp = flag
+
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newNodes)
+      }
+    })
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+
+    // 改变属性
+    temp.value = false
+
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+  })
+
+  test('test update children array -> array old < new right', () => {
+    const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
+    const newVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
+
+    // a b   i = 2 e1 = 1 e2 = 2
+    // a b c
+    // 条件 i > e1 && i <= e2
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+
+        temp = flag
+
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newVNodes)
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+
+    // 改变属性
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+
+  })
+
+  test('test update children array -> array old < new left', () => {
+    const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
+    const newNodes = [h('p', { key: 'C' }, 'C'), h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
+    //    a b   i = 0 e1 = -1 e2 = 0
+    // d c a b
+    // 条件 i > e1 && i <= e2
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+        temp = flag
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newNodes)
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+
+    // 改变属性
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('<p>C</p><p>A</p><p>B</p>')
+  })
+
+  test('test update children array -> array middle compare old > new remove', () => {
+    const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D')]
+    const newNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'D' }, 'D')]
+    // a b c d   i = 2 e1 = 2 e2 = 1
+    // a b d
+    // 条件 i <= e1 && i > e2
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+        temp = flag
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newNodes)
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p>')
+
+    // 改变属性
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>D</p>')
+  })
+
+  test('test update children array -> array middle compare move node', () => {
+    const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D'), h('p', { key: 'E' }, 'E')]
+    const newVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'D' }, 'D'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'E' }, 'E')]
+
+    // a b c d e   i = 1 e1 = 3 e2 = 3
+    // a d b c e
+
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+        temp = flag
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newVNodes)
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p><p>E</p>')
+
+    // 改变属性
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>B</p><p>C</p><p>E</p>')
+  })
+
+  test('test update children array -> array middle compare increase node', () => {
+    const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D'), h('p', { key: 'E' }, 'E')]
+    const newVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D'), h('p', { key: 'E' }, 'E')]
+    let temp;
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+        temp = flag
+        return {
+          flag
+        }
+
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newVNodes)
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>C</p><p>D</p><p>E</p>')
+
+    // 改变属性
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p><p>E</p>')
+  })
+
+  test('综合测试', () => {
+    const oldVNodes = [h('p', { key: 'A', props: 'old-text' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D'), h('p', { key: 'E' }, 'E'), h('p', { key: 'F' }, 'F')]
+    const newVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'D' }, 'D'), h('p', { key: 'G' }, 'G'), h('p', { key: 'B', props: 'new-text' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'E' }, 'E')]
+    let temp
+    const app = createApp({
+      setup() {
+        const flag = ref(true)
+        temp = flag
+        return {
+          flag
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.flag ? oldVNodes : newVNodes)
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p props="old-text">A</p><p>B</p><p>C</p><p>D</p><p>E</p><p>F</p>')
+
+    // 改变属性
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>G</p><p props="new-text">B</p><p>C</p><p>E</p>')
+  })
+
 })
