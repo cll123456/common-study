@@ -103,7 +103,7 @@ describe('compUpdate', () => {
     expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
   })
 
-  test('test update children array -> text', () => {
+  test('test elem update children array -> text', () => {
     let temp;
     const app = createApp({
       setup() {
@@ -132,7 +132,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('newText')
   })
 
-  test('test update children text -> text', () => {
+  test('test elem update children text -> text', () => {
     let temp;
     const app = createApp({
       setup() {
@@ -161,7 +161,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('newText')
   })
 
-  test('test update children text -> array', () => {
+  test('test elem update children text -> array', () => {
     let temp;
     const app = createApp({
       setup() {
@@ -190,7 +190,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('<p>1</p><p>2</p>')
   })
 
-  test('test update children array -> array old > new left', () => {
+  test('test elem update children array -> array old > new left', () => {
     // 数组对比，新的比老的左侧短，删除老的
     const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
     const newNodes = [h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
@@ -223,7 +223,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('<p>B</p><p>C</p>')
   })
 
-  test('test update children array -> array old > new right', () => {
+  test('test elem update children array -> array old > new right', () => {
     // 数组对比，新的比老的左侧短，删除老的
     const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
     const newNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
@@ -256,7 +256,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
   })
 
-  test('test update children array -> array old < new right', () => {
+  test('test elem update children array -> array old < new right', () => {
     const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
     const newVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C')]
 
@@ -290,7 +290,7 @@ describe('compUpdate', () => {
 
   })
 
-  test('test update children array -> array old < new left', () => {
+  test('test elem update children array -> array old < new left', () => {
     const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
     const newNodes = [h('p', { key: 'C' }, 'C'), h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B')]
     //    a b   i = 0 e1 = -1 e2 = 0
@@ -320,7 +320,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('<p>C</p><p>A</p><p>B</p>')
   })
 
-  test('test update children array -> array middle compare old > new remove', () => {
+  test('test elem update children array -> array middle compare old > new remove', () => {
     const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D')]
     const newNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'D' }, 'D')]
     // a b c d   i = 2 e1 = 2 e2 = 1
@@ -350,7 +350,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>D</p>')
   })
 
-  test('test update children array -> array middle compare move node', () => {
+  test('test elem update children array -> array middle compare move node', () => {
     const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D'), h('p', { key: 'E' }, 'E')]
     const newVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'D' }, 'D'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'E' }, 'E')]
 
@@ -381,7 +381,7 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>B</p><p>C</p><p>E</p>')
   })
 
-  test('test update children array -> array middle compare increase node', () => {
+  test('test elem update children array -> array middle compare increase node', () => {
     const oldVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D'), h('p', { key: 'E' }, 'E')]
     const newVNodes = [h('p', { key: 'A' }, 'A'), h('p', { key: 'B' }, 'B'), h('p', { key: 'C' }, 'C'), h('p', { key: 'D' }, 'D'), h('p', { key: 'E' }, 'E')]
     let temp;
@@ -437,4 +437,72 @@ describe('compUpdate', () => {
     expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>G</p><p props="new-text">B</p><p>C</p><p>E</p>')
   })
 
+
+  test('test comp update self', () => {
+    let temp;
+    const app = createApp({
+      setup() {
+        temp = ref(true)
+        return {
+          temp
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, this.temp ? 'A' : 'B')
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('A')
+
+    // 改变属性
+    temp.value = false
+    expect(containerDom?.innerHTML).toBe('B')
+  })
+
+
+  test('test comp update by Child', () => {
+    let click
+    const Child = {
+      name: 'Child',
+      setup(props, { emit }) {
+        click = () => {
+          emit('click')
+        }
+        return {
+          click
+        }
+      },
+      render() {
+        return h('div', {}, this.$props.a)
+      }
+    }
+    const app = createApp({
+      name: 'App',
+      setup() {
+        const a = ref(1);
+        const changeA = () => {
+          a.value++
+        }
+        return {
+          a,
+          changeA
+        }
+      },
+      render() {
+        return h('div', { class: 'container' }, [h('p', {}, this.a), h(Child, { a: this.a, onClick: this.changeA })])
+      }
+    })
+
+    const appDoc = document.querySelector('#app')
+    app.mount(appDoc)
+    const containerDom = document.querySelector('.container')
+    expect(containerDom?.innerHTML).toBe('<p>1</p><div>1</div>')
+
+    // 调用click
+    click()
+    expect(containerDom?.innerHTML).toBe('<p>2</p><div>2</div>')
+  })
 })

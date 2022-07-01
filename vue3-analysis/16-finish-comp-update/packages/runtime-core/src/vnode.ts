@@ -28,6 +28,8 @@ export function createVNode(type, props?, children?) {
     shapeflag: getShapeFlag(type),
     // 组件的key
     key: props && props.key,
+    // 当前组件的实例
+    component: null,
   }
 
   // 判断children的类型

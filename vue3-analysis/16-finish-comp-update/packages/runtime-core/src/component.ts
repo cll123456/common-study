@@ -12,6 +12,8 @@ import { initSlots } from "./componentSlots"
 export function createComponentInstance(vnode, parent) {
   const instance = {
     vnode,
+    // 更新后组件的vnode
+    next: null,
     props: {},
     type: vnode.type,
     // setup函数返回的对象结果
@@ -31,11 +33,14 @@ export function createComponentInstance(vnode, parent) {
     // 是否挂载
     isMounted: false,
     // 当前的组件树
-    subtree: {}
+    subtree: {},
+    // 当前组件的更新函数，调用后，自动执行render函数
+    update: null,
   }
 
   instance.emit = emit.bind(null, instance);
-
+  // 设置组件的实例
+  vnode.component = instance;
   return instance
 }
 
