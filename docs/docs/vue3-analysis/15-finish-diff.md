@@ -7,7 +7,7 @@
 1.  [vue3源码分析——实现createRenderer，增加runtime-test](https://juejin.cn/post/7112349410528329758 "https://juejin.cn/post/7112349410528329758")
 2. [ vue3源码分析——实现element属性更新，child更新](https://juejin.cn/post/7114203851770560525)
 
-本期来实现，上一期中还差了children与children的对比😉😉😉 **vue3更新流程中的children与children的对比，也就是diff算法**，所有的[源码请查看](https://link.juejin.cn?target=https%3A%2F%2Fgithub.com%2Fcll123456%2Fcommon-study%2Ftree%2Fmaster%2Fvue3-analysis%2F14-finish-comp-update "https://github.com/cll123456/common-study/tree/master/vue3-analysis/14-finish-comp-update")
+本期来实现，上一期中还差了children与children的对比😉😉😉 **vue3更新流程中的children与children的对比，也就是diff算法**，所有的[源码请查看](https://link.juejin.cn?target=https%3A%2F%2Fgithub.com%2Fcll123456%2Fcommon-study%2Ftree%2Fmaster%2Fvue3-analysis%2F14-finish-comp-update "https://github.com/cll123456/common-study/tree/master/vue3-analysis/14-finish-elem-update")
 
 
 
