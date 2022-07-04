@@ -21,7 +21,7 @@ export function createVNode(type, props?, children?) {
   const vnode = {
     type,
     props: props || {},
-    children: children || [],
+    children: children !== null ? children : [],
     // 当前组件的真实dom
     el: null,
     // 判断vnode的类型
@@ -35,7 +35,7 @@ export function createVNode(type, props?, children?) {
   // 判断children的类型
   if (Array.isArray(children)) {
     vnode.shapeflag |= ShapeFlags.ARRAY_CHILDREN
-  } else if (children && typeof String(children) === 'string') {
+  } else if (children !== null && typeof String(children) === 'string') {
     vnode.shapeflag |= ShapeFlags.TEXT_CHILDREN
   }
   // 判断插槽的属性

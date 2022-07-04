@@ -3,6 +3,7 @@ import { ShapeFlags } from "shared"
 import { createAppAPI } from "./apiCreateApp"
 import { createComponentInstance, setupComponent } from "./component"
 import { shouldUpdateComponent } from "./helpers/componentsUtils"
+import { queueJob } from "./scheduler"
 import { Fragment, Text } from "./vnode"
 
 export function createRenderer(options) {
@@ -91,19 +92,6 @@ export function createRenderer(options) {
       n2.el = n1.el;
       instance.vnode = n2
     }
-    // 获取组件的props
-    // const oldProps = instance.props
-    // // 获取组件的props
-    // const newProps = n2.props
-    // // 判断组件的props是否发生变化
-    // if (oldProps === newProps) {
-    //   // 如果没有变化，直接返回
-    //   return
-    // }
-    // // 设置组件的props
-    // instance.props = newProps
-    // // 更新组件
-    // instance.update()
   }
 
 
@@ -156,7 +144,13 @@ export function createRenderer(options) {
         patch(preSubtree, nextSubtree, container, instance, anchor)
         instance.subtree = nextSubtree
       }
-    })
+    },
+      {
+        scheduler() {
+          queueJob(instance.update)
+        }
+      }
+    )
   }
 
   function updateComponentPreRender(instance, nextVNode) {
@@ -253,7 +247,6 @@ export function createRenderer(options) {
   }
 
   function patchKeyChildren(n1, n2, container, parentComponent, anchor) {
-
     // 采用双端对比法
     const l2 = n2.length
     const l1 = n1.length
