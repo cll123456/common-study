@@ -22,7 +22,9 @@ describe('apiCreateApp', () => {
     });
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
-    expect(document.body.innerHTML).toBe('<div id="app"><div>123</div></div>');
+    Promise.resolve().then(() => {
+      expect(document.body.innerHTML).toBe('<div id="app"><div>123</div></div>');
+    })
   })
 
   test('测试属性是否存在', () => {
@@ -33,7 +35,9 @@ describe('apiCreateApp', () => {
     });
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
-    expect(document.body.innerHTML).toBe('<div id="app"><div class="container">123</div></div>');
+    Promise.resolve().then(() => {
+      expect(document.body.innerHTML).toBe('<div id="app"><div class="container">123</div></div>');
+    })
   })
 
   test('实现代理对象，通过this来访问', () => {
@@ -49,7 +53,9 @@ describe('apiCreateApp', () => {
     });
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
-    expect(document.body.innerHTML).toBe('<div id="app"><div class="container">123</div></div>');
+    Promise.resolve().then(() => {
+      expect(document.body.innerHTML).toBe('<div id="app"><div class="container">123</div></div>');
+    })
   })
 
   test('实现this.$el', () => {
@@ -62,8 +68,9 @@ describe('apiCreateApp', () => {
     });
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
-
-    expect(document.body.innerHTML).toBe('<div id="app"><div class="container" id="container">123</div></div>');
+    Promise.resolve().then(() => {
+      expect(document.body.innerHTML).toBe('<div id="app"><div class="container" id="container">123</div></div>');
+    })
 
     const elDom = document.querySelector('#container')
     // el就是当前组件的真实dom

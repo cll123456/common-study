@@ -44,6 +44,8 @@ describe('apiGetCurrentInstance', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement
-    expect(container.innerHTML).toBe('<div>1</div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div>1</div>')
+    })
   })
 })

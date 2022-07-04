@@ -31,8 +31,10 @@ describe('componentSlots', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
     const container = document.querySelector('.container') as HTMLElement;
-    expect(container.innerHTML).toBe('<div class="foo"><p>1</p><div class="slot">slot1</div></div><div class="foo"><p>2</p><p class="slot">slot2</p><p class="slot">slot2</p></div>'
-    )
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div class="foo"><p>1</p><div class="slot">slot1</div></div><div class="foo"><p>2</p><p class="slot">slot2</p><p class="slot">slot2</p></div>'
+      )
+    })
   })
 
   test('测试具名插槽', () => {
@@ -63,8 +65,9 @@ describe('componentSlots', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement
-
-    expect(container.innerHTML).toBe('<div class=\"foo\"><h1>header</h1><div class=\"default\">default</div><p>footer</p></div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div class=\"foo\"><h1>header</h1><div class=\"default\">default</div><p>footer</p></div>')
+    })
   })
 
   test('测试作用域插槽', () => {
@@ -95,8 +98,9 @@ describe('componentSlots', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement
-
-    expect(container.innerHTML).toBe('<div class=\"foo\"><h1>header foo</h1><div class=\"default\">default</div><p>footer</p></div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div class=\"foo\"><h1>header foo</h1><div class=\"default\">default</div><p>footer</p></div>')
+    })
 
   })
 
@@ -128,8 +132,9 @@ describe('componentSlots', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement
-
-    expect(container.innerHTML).toBe('<div class=\"foo\"><h1>header foo</h1><div class=\"default\">default</div>footer</div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div class=\"foo\"><h1>header foo</h1><div class=\"default\">default</div>footer</div>')
+    })
 
   })
 

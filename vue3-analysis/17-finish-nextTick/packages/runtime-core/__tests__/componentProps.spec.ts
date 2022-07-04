@@ -82,7 +82,9 @@ describe('componentProps', () => {
     expect(tempProps.count).toBe(1)
 
     // 验证功能2，在render中可以直接使用this来访问props里面的内部属性
-    expect(document.body.innerHTML).toBe(`<div id="app"><div class="container"><div class="foo">1</div><span class="span">123</span></div></div>`)
+    Promise.resolve().then(() => {
+      expect(document.body.innerHTML).toBe(`<div id="app"><div class="container"><div class="foo">1</div><span class="span">123</span></div></div>`)
+    })
   })
 
 
@@ -139,7 +141,9 @@ describe('componentProps', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc);
     // 验证挂载
-    expect(document.body.innerHTML).toBe(`<div id="app"><div><div class="foo">1</div></div></div>`)
+    Promise.resolve().then(() => {
+      expect(document.body.innerHTML).toBe(`<div id="app"><div><div class="foo">1</div></div></div>`)
+    })
 
 
   })

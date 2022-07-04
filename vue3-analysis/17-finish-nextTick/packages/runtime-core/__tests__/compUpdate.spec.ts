@@ -36,7 +36,9 @@ describe('compUpdate', () => {
     const containerDom = document.querySelector('.container')
     // 初步挂载
     const containerHtml = containerDom?.innerHTML;
-    expect(containerHtml).toBe('<p>1</p><button id="myBtn">button</button>')
+    Promise.resolve().then(() => {
+      expect(containerHtml).toBe('<p>1</p><button id="myBtn">button</button>')
+    })
 
 
     // const btnDom = containerDom?.querySelector('#myBtn') as HTMLElement;
@@ -85,22 +87,31 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     // 默认挂载
-    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo" bar="bar" baz="baz"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
-
+    Promise.resolve().then(() => {
+      expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo" bar="bar" baz="baz"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
+    })
     // 删除属性
     const deleteBtn = appDoc?.querySelector('#deleteBaz') as HTMLElement;
     deleteBtn?.click();
-    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo" bar="bar"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
-
-    // 更新属性
-    const changeFooBtn = appDoc?.querySelector('#changeFoo') as HTMLElement;
-    changeFooBtn?.click();
-    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1" bar="bar"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
-
-    // 属性置undefined
-    const changeBarToUndefinedBtn = appDoc?.querySelector('#changeBarToUndefined') as HTMLElement;
-    changeBarToUndefinedBtn?.click();
-    expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
+    Promise.resolve().then(() => {
+      expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo" bar="bar"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
+    })
+    setTimeout(() => {
+      // 更新属性
+      const changeFooBtn = appDoc?.querySelector('#changeFoo') as HTMLElement;
+      changeFooBtn?.click();
+      Promise.resolve().then(() => {
+        expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1" bar="bar"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
+      })
+    }, 2000)
+    setTimeout(() => {
+      // 属性置undefined
+      const changeBarToUndefinedBtn = appDoc?.querySelector('#changeBarToUndefined') as HTMLElement;
+      changeBarToUndefinedBtn?.click();
+      Promise.resolve().then(() => {
+        expect(appDoc?.innerHTML).toBe('<div class="container" foo="foo1"><button id="changeFoo">changeFoo</button><button id="changeBarToUndefined">changeBarToUndefined</button><button id="deleteBaz">deleteBaz</button></div>')
+      })
+    }, 4000)
   })
 
   test('test elem update children array -> text', () => {
@@ -125,11 +136,15 @@ describe('compUpdate', () => {
     const containerDom = document.querySelector('.container')
     // 初步挂载
     const containerHtml = containerDom?.innerHTML;
-    expect(containerHtml).toBe('<p>1</p><p>2</p>')
+    Promise.resolve().then(() => {
+      expect(containerHtml).toBe('<p>1</p><p>2</p>')
+    })
 
     // 更新children,将数组改成文本
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('newText')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('newText')
+    })
   })
 
   test('test elem update children text -> text', () => {
@@ -154,11 +169,15 @@ describe('compUpdate', () => {
     const containerDom = document.querySelector('.container')
     // 初步挂载
     const containerHtml = containerDom?.innerHTML;
-    expect(containerHtml).toBe('oldText')
+    Promise.resolve().then(() => {
+      expect(containerHtml).toBe('oldText')
+    })
 
     // 更新children,将数组改成文本
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('newText')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('newText')
+    })
   })
 
   test('test elem update children text -> array', () => {
@@ -183,11 +202,15 @@ describe('compUpdate', () => {
     const containerDom = document.querySelector('.container')
     // 初步挂载
     const containerHtml = containerDom?.innerHTML;
-    expect(containerHtml).toBe('oldText')
+    Promise.resolve().then(() => {
+      expect(containerHtml).toBe('oldText')
+    })
 
     // 更新children,将数组改成array
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('<p>1</p><p>2</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>1</p><p>2</p>')
+    })
   })
 
   test('test elem update children array -> array old > new left', () => {
@@ -215,12 +238,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+    })
 
     // 改变属性
     temp.value = false
-
-    expect(containerDom?.innerHTML).toBe('<p>B</p><p>C</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>B</p><p>C</p>')
+    })
   })
 
   test('test elem update children array -> array old > new right', () => {
@@ -248,12 +274,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+    })
 
     // 改变属性
     temp.value = false
-
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+    })
   })
 
   test('test elem update children array -> array old < new right', () => {
@@ -282,11 +311,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+    })
 
     // 改变属性
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p>')
+    })
 
   })
 
@@ -313,11 +346,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p>')
+    })
 
     // 改变属性
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('<p>C</p><p>A</p><p>B</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>C</p><p>A</p><p>B</p>')
+    })
   })
 
   test('test elem update children array -> array middle compare old > new remove', () => {
@@ -343,11 +380,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p>')
+    })
 
     // 改变属性
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>D</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>D</p>')
+    })
   })
 
   test('test elem update children array -> array middle compare move node', () => {
@@ -374,11 +415,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p><p>E</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p><p>E</p>')
+    })
 
     // 改变属性
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>B</p><p>C</p><p>E</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>B</p><p>C</p><p>E</p>')
+    })
   })
 
   test('test elem update children array -> array middle compare increase node', () => {
@@ -402,11 +447,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>C</p><p>D</p><p>E</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>C</p><p>D</p><p>E</p>')
+    })
 
     // 改变属性
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p><p>E</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>B</p><p>C</p><p>D</p><p>E</p>')
+    })
   })
 
   test('综合测试', () => {
@@ -430,11 +479,14 @@ describe('compUpdate', () => {
     app.mount(appDoc)
 
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p props="old-text">A</p><p>B</p><p>C</p><p>D</p><p>E</p><p>F</p>')
-
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p props="old-text">A</p><p>B</p><p>C</p><p>D</p><p>E</p><p>F</p>')
+    })
     // 改变属性
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>G</p><p props="new-text">B</p><p>C</p><p>E</p>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>A</p><p>D</p><p>G</p><p props="new-text">B</p><p>C</p><p>E</p>')
+    })
   })
 
 
@@ -455,11 +507,15 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('A')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('A')
+    })
 
     // 改变属性
     temp.value = false
-    expect(containerDom?.innerHTML).toBe('B')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('B')
+    })
   })
 
 
@@ -499,10 +555,14 @@ describe('compUpdate', () => {
     const appDoc = document.querySelector('#app')
     app.mount(appDoc)
     const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>1</p><div>1</div>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>1</p><div>1</div>')
+    })
 
     // 调用click
     click()
-    expect(containerDom?.innerHTML).toBe('<p>2</p><div>2</div>')
+    Promise.resolve().then(() => {
+      expect(containerDom?.innerHTML).toBe('<p>2</p><div>2</div>')
+    })
   })
 })

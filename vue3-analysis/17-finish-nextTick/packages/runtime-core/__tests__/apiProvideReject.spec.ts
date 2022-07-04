@@ -42,8 +42,9 @@ describe('apiProvideReject', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement;
-
-    expect(container.innerHTML).toBe('<div>str1</div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div>str1</div>')
+    })
   })
 
   test('test provide exit grandfather', () => {
@@ -91,8 +92,9 @@ describe('apiProvideReject', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement;
-
-    expect(container.innerHTML).toBe('<div><p>1</p><div>str1</div></div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div><p>1</p><div>str1</div></div>')
+    })
   })
 
 
@@ -142,7 +144,9 @@ describe('apiProvideReject', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement;
-    expect(container.innerHTML).toBe('<div><p>1</p><div>str10</div></div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div><p>1</p><div>str10</div></div>')
+    })
   })
 
 
@@ -195,7 +199,9 @@ describe('apiProvideReject', () => {
     app.mount(appDoc);
 
     const container = document.querySelector('.container') as HTMLElement;
-    expect(container.innerHTML).toBe('<div>str100</div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div>str100</div>')
+    })
   })
 
   test('inject can get second params', () => {
@@ -228,8 +234,9 @@ describe('apiProvideReject', () => {
     const appDoc = document.querySelector('#app');
     app.mount(appDoc);
     const container = document.querySelector('.container') as HTMLElement;
-
-    expect(container.innerHTML).toBe('<div>strvaluefuncVal</div>')
+    Promise.resolve().then(() => {
+      expect(container.innerHTML).toBe('<div>strvaluefuncVal</div>')
+    })
 
   })
 })
