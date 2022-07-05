@@ -1,0 +1,17 @@
+{
+  "name": "complier-core",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/complier-core.cjs.js",
+  "module": "dist/complier-core.esm-bundler.js",
+  "types": "dist/complier-core.d.ts",
+  "scripts": {
+    "build": "rimraf dist & rollup -c",
+    "buildDev": "rollup -c",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

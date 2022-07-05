@@ -1,0 +1,21 @@
+{
+  "name": "runtime-dom",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/runtime-dom.cjs.js",
+  "module": "dist/runtime-dom.esm-bundler.js",
+  "types": "dist/runtime-dom.d.ts",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "build": "rimraf dist & rollup -c",
+    "buildDev": "rollup -c"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "shared":"workspace:shared@*",
+    "runtime-core":"workspace:runtime-core@*"
+  }
+}
