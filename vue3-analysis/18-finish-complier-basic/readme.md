@@ -6,142 +6,213 @@ theme: qklhk-chocolate
 
 <<往期回顾>>
 
-1.  [vue3源码分析——实现组件通信provide,inject](https://juejin.cn/post/7111682377507667999 "https://juejin.cn/post/7111682377507667999")
-1.  [vue3源码分析——实现createRenderer，增加runtime-test](https://juejin.cn/post/7112349410528329758 "https://juejin.cn/post/7112349410528329758")
-1.  [vue3源码分析——实现element属性更新，child更新](https://juejin.cn/post/7114203851770560525 "https://juejin.cn/post/7114203851770560525")
-4. [vue3源码分析——手写diff算法](https://juejin.cn/post/7114966648309678110)
+1.  [vue3源码分析——手写diff算法](https://juejin.cn/post/7114966648309678110 "https://juejin.cn/post/7114966648309678110")
 
-前面的两期主要是实现`element的更新`,`vue`的更新除了`element`的更新外,还有`component`的更新哦,本期就带大家一起来看看,本期所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/16-finish-comp-update)
+5. [ vue3源码分析——实现组件更新](https://juejin.cn/post/7115326422675587102 "https://juejin.cn/post/7115326422675587102")
+3. [vue3源码分析——解密nextTick的实现](https://juejin.cn/post/7116446683277295623)
+
+想知道`vue3-complier`是怎么实现的吗？🤔🤔🤔，本期就来实现`vue3-complier`的基础，看看·`vue`是如果来处理模板的，所有的源码请查看[仓库](https://github.com/cll123456/common-study/tree/master/vue3-analysis/18-finish-complier-basic)
 
 # 正文
-vue3在更新element的时候,除了需要**分情况讨论更新children外,还需要来看vue3的属性**有没有变化;那么同样的道理,对于**组件的更新,也是需要来更新属性,插槽**等
 
-## 流程
+## 效果
+在[https://astexplorer.net/](https://astexplorer.net/) 这个网站上可以写上vue的模板，然后选择vue3-complier,就可以得到vue3编译模板后的ast了。
+最终效果如下：
 
-![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/ea4d6010dd2d4846b8e6f71deae72b08~tplv-k3u1fbpfcp-watermark.image?)
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6a0cfbfbefce4c82adafa65f8e4797ec~tplv-k3u1fbpfcp-watermark.image?)
 
-> 看到这个流程,是不是感觉比**element的更新**简单许多(❁´◡`❁)
+但是对于一开始肯定是没有那么多属性的，所以可以小步走。先来实现个最简单的形式。
 
-## 测试用例
-根据上面的流程图,可以写出这样的测试用例
-
-```ts
- test('test comp update by Child', () => {
-    let click
-    const Child = {
-      name: 'Child',
-      setup(props, { emit }) {
-        click = () => {
-          emit('click')
-        }
-        return {
-          click
-        }
-      },
-      render() {
-        return h('div', {}, this.$props.a)
-      }
-    }
-    const app = createApp({
-      name: 'App',
-      setup() {
-        const a = ref(1);
-        const changeA = () => {
-          a.value++
-        }
-        return {
-          a,
-          changeA
-        }
-      },
-      render() {
-        return h('div', { class: 'container' }, [h('p', {}, this.a), h(Child, { a: this.a, onClick: this.changeA })])
-      }
-    })
-    const appDoc = document.querySelector('#app')
-    app.mount(appDoc)
-    // 默认开始挂载严重
-    const containerDom = document.querySelector('.container')
-    expect(containerDom?.innerHTML).toBe('<p>1</p><div>1</div>')
-    // 调用click
-    click()
-    expect(containerDom?.innerHTML).toBe('<p>2</p><div>2</div>')
-```
-## 分析
-
-根据上面的流程图,可以分析出下面的需求
-
-1. `updateComponent`里面需要实现啥;
-2. `updatePreRender`函数里面又是需要做啥;
-3. 怎么调用`render`函数呢?
-
-问题解决:
-### updateComponent
-`updateComponent`方法的调用肯定是在`processComponent`中的`旧vnode`存在的时候来调用,里面需要进行新老节点的对比,判断是否需要进行更新.更新则调用`updateComponentPreRender`去更新vnode的props,slots等.这里会还需要把**新vnode**给保存在实例当中方便后续的使用,最后还需要在**当前的vnode当中保存当前组件的实例**,方便后续交换新老vnode的时候调用.
-
-### updatePreRender 
-这个函数就是只要处理更新的逻辑即可
-
-### 调用render
-`render`的调用是在 `setupRenderEffect`中调用的,是不是可以重复利用下这个功能呢? 当然可以,**effect函数是默认返回一个runner的,可以手动调用runner来执行effect里面的方法**. 那么可以在当前的实例当中保存一个`update`方法,用于需要调用`render`的时候来进行调用即可.
-
-## 编码
 
 ```ts
-// 在创建vnode当中,添加component属性
-export function createVNode(type, props?, children?) {
-  const vnode = {
-    ...省略其他属性
-    // 当前组件的实例
-    component: null,
-  }  
-}
-// 在instance中添加 next属性和update方法,方便后续使用
+// 输入 <div>hi twinkle, {{message}}</div>
 
-export function createComponentInstance(vnode, parent) {
-  const instance = {
-    // ... 省略其他属性 
-    // 更新后组件的vnode
-    next: null,
-    // 当前组件的更新函数，调用后，自动执行render函数
-    update: null,
-  }
-  vnode.component = instance
-}
+// 输出对应的ast树
 
-// 绑定insance.update,在setupRenderEffect中调用effect的时候绑定
-
-// 实现updateComponent,并且在processComponent满足n1的时候来进行调用
-function updateComponent(n1, n2) {
-    // 更新组件
-    const instance = (n2.component = n1.component)
-    // 判断是否需要更新
-    if (需要更新(n1, n2)) {
-      instance.next = n2;
-      instance.update();
-    } else {
-    // 不需要更新则赋值
-      n2.el = n1.el;
-      instance.vnode = n2
+{
+  "type": 0,
+  "children": [{
+    "type": 1,
+    "tag": "div",
+    "children": [{
+      "type": 2,
+      "content": "hi, twinkle, "
+    },
+    {
+      "type": 5,
+      "content": {
+        "type": 4,
+        "content": "message"
+      }
     }
- } 
- 
- // 在setupRenderEffect中对更新部分进行改造,存在next的时候来调用updateComponentPreRender
- 
-  function updateComponentPreRender(instance, nextVNode) {
-  // 把当前实例赋值给更新的vnode
-    nextVNode.component = instance;
-    // 更新当前实例的vode
-    instance.vnode = nextVNode
-    // 置空newVnode
-    instance.next = null;
-    // 更新属性
-    instance.props = nextVNode.props;
-    // 更新插槽
-    instance.slots = nextVNode.slots;
-  }
- 
+    ]
+  }]
+}
 ```
+
+> 看到这个ast, vue是自己手动实现了一个complier,也就是说手动实现了ast解析，下面就一起来看看吧！😉😉😉
+
+# 分步走
+在`<div>hi twinkle, {{message}}</div>`中这可以可以分成三种类型的节点。
+- element: 解析div类型， 如`<div></div>`
+- text: 解析文本类型, 如`hi, twinkle`
+- interpolation(插值)： 解析插值类型，如`{{message}}`
+
+既然可以分为三种，那就对外提供一个公共的解析方法，然后在内部来分化成其他的情况。但是对外是一个方法，**这里肯定会用到循环，循环调用那个解析字符串的方法**,如下图：
+
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/33b062aaff48436ba4cfd273882b642e~tplv-k3u1fbpfcp-watermark.image?)
+
+
+
+根据上面的这副图，可以写出以下的代码
+```ts
+export function baseParse(str){
+ // 为了方便处理str,使用一个引用值来存储str
+ cosnt context = {source: str}
+ const children = parseChildren(context)
+ return {type: 0, children}
+}
+
+function parseChildren(context){
+  const str = context.source
+    const nodes = []
+    let node;
+    // 判断类型
+    if(s.startsWidth('{{')){
+      // 解析插值
+    node =  parseInterpolation(context)
+    }else if(s.startsWidth('<') && /<[a-z]*>/i).test(str)){
+      // 解析元素
+    node =  parseElement(context)
+    }else{
+      // 解析文本
+    node =   parseText(context)
+    }
+    
+    if(node){
+      nodes.push(node)
+    }
+    
+    return nodes;
+}
+```
+
+> 这里还会有一个问题，那就是怎么来处理传入的str, vue采用的方式是：**稳扎稳打，逐步推进**,意思是说，对里面的每一种类型进行判断，进行对应的逻辑处理，处理完的把字符串给删除掉（**推进**）
+
+有了上面的分发，那么接下来可以对每一个方法进行具体的实现
+
+## 实现解析Element
+
+element的格式是`<div>...</div>`，必须是`<`开头的，而且后面一定会有`>`符号结尾，那就能够拿到标签的tag。
+
+
+```ts
+function parseElement(context){
+ const s = context.source
+ const elemet = {type: 1}
+ // 先拿到tag,并且把<div>给移除掉
+   const match = /<\/?([a-z]*)>/i.exec(context.source)
+   // match的结构是 ['<div>', 'div', ...]
+   if (match && match.length > 1) {
+      elemet.tag = match[1]
+      // 移除掉<div>
+      context.source = s.slice(match[0].length)
+   }
+   // 把头去掉后，剩余中间的内容，有文本和插值，需要重新调用parseChildren
+   elemet.children = parseChildren(context)
+   // 处理完中间部分，需要把</div>给移除掉
+   const matchEnd =  /<\/?([a-z]*)>/i.exec(context.source)
+     if (matchEnd && matchEnd.length > 1) {
+      // 移除掉<div>
+      context.source = s.slice(matchEnd[0].length)
+   }
+   return element
+}
+```
+
+处理element来说，只要找出头部的标签，就调用patchChildren来处理内部的内容，然后处理结束标签，这个理解起来应该不是很难
+
+## 处理Text
+处理文本类型的关键在于判断文本到哪里截止，也就是文本的长度是多少。这里的话需要判断文本里面`{{`这个符号的位置即可。
+
+
+```ts
+function parseText(context){
+  // 先让index是文本的长度，然后来找满足条件的其他位置
+  const s = context.source.length;
+  let index = s.length;
+  const findIndex = s.indexOf('{{')
+  // 如果找到了
+  if(findIndex > -1){
+    index = findIndex
+  }
+  // 拿到content，当前的文本内容
+  const content = s.slice(0, index)
+  // 对文本进行截取
+  context.source = s.slice(index)
+  return {
+    type: 2,
+    content
+  }
+  
+  // 需要继续处理，这里调用patchChildren?
+  // 显然不是，renturn后面的代码并不会执行
+}
+```
+
+处理`text`是不难的，只需要判断文本中有没有特殊符号，如果有的话，那就找到位置，处理文本到特殊符号当前。然后继续调用`patchChildren`方法.但是这里有一个问题，处理完文本都`return`了，**怎么调用patchChildren方法呢？**
+
+> 办法肯定有的，只需要在`patchChildren`中`while`循环即可，但是需要判断结束条件哦！
+
+### 改造parseChildren方法
+
+
+```ts
+
+function parseChildren(context){
+  const str = context.source
+    const nodes = []
+    // 当长度解析完毕后就结束
+    while(!context.source.length){
+    // ……原有的逻辑不变
+    }
+    
+    return nodes;
+}
+```
+
+## 解析插值
+上面的字符串经过前两步的解析，最终变成 `{{message}}</div>`，接下来实现最后的解析插值
+
+
+```ts
+function parseInterpolation(context){
+    const s = context.source;
+    // 去掉{{
+    context.source = s.slice(2)
+    // 找到 }}的位置
+    const end = context.source.indexOf('}}',2);
+    // 获取中间的内容
+    const content = s.slice(2, end);
+    // 去掉}}
+    context.source = context.source.slice(end+2)
+    // 返回结果
+    return {
+     "type": 5,
+      "content": {
+        "type": 4,
+        content
+      }
+    }
+}
+```
+
+如此就可以解析插值啦，接下里就可以解析完成，然后获取对应的`ast`树！😀😀😀
+
+由于篇幅关系，这里就分析核心，我在`complier basic`中解析了更多的情况，有兴趣的可以搞起来哦！！！
+
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c5c318b0a19d4b3c8518bd555c17b3bc~tplv-k3u1fbpfcp-watermark.image?)
 
 # 总结
-本期主要实现了vue3的组件更新,在组件更新中,主要的流程是 `updateComponent--> updateComponentPreRender --> render`, 在这三个函数中交换新老vnode的属性,给把当前的vnode给更新掉即可
+本期主要实现了vue3中的complier的核心，是如何`<div>hi, twinkle, {{message}}</div>`这里字符串的。**vue3是采用逐步推进的方式，解析完一段就删除一段，然后传给后续的方法来继续解析**.在解析的过程中就是主要考验`js`对字符串处理的实力了👍👍👍
