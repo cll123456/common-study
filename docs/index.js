@@ -19,7 +19,7 @@ const isExitFirDir = (docsPath) => fs.existsSync(docsPath)
  * @param {*} index 索引
  * @param {*} title 一级标题
  */
-const autoGenrateSlidebarJson = (dirName, index, title) => {
+const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') => {
   // let dirName = 'vue3-analysis'
 
   // 拼接源码的路径
@@ -44,10 +44,25 @@ const autoGenrateSlidebarJson = (dirName, index, title) => {
       sidebarItems.push({ text: '介绍', link: `/${dirName}/index.md` })
     } else {
       // 将文件下面的readme.md文件移入到docs目录下面
-      const readmePath = `${originPath}/${file}/readme.md`
+      const readmePath = `${originPath}/${file}/${fileName}`
       if (fs.existsSync(readmePath)) {
-        fs.copyFileSync(readmePath, `${docsPath}/${file}.md`)
-        sidebarItems.push({ text: file, link: `/${dirName}/${file}.md` })
+        // 建立目录
+        const subDirName = resolve(`./docs/${dirName}/${file}`)
+        if (!isExitFirDir(subDirName)) {
+          // 创建目录
+          fs.mkdirSync(subDirName)
+        }
+        fs.copyFileSync(readmePath, `${docsPath}/${file}/${file}.md`)
+        sidebarItems.push({ text: file, link: `/${dirName}/${file}/${file}.md` })
+
+        // 找到file目录下面的所有.md后缀的文件，存在需要全部copy
+        const fileList = fs.readdirSync(`${originPath}/${file}`)
+        fileList.forEach(subFile => {
+          if (subFile.endsWith('.md')) {
+            fs.copyFileSync(`${originPath}/${file}/${subFile}`, `${docsPath}/${file}/${subFile}`)
+          }
+        })
+
       }
     }
   })
@@ -75,5 +90,6 @@ const autoGenrateSlidebarJson = (dirName, index, title) => {
 (() => {
   // 自动生成slidebar.json
   autoGenrateSlidebarJson('vue3-analysis', 0, 'vue3源码分析')
+  autoGenrateSlidebarJson('packages-study', 1, '源码阅读', 'index.md')
 
 })()
