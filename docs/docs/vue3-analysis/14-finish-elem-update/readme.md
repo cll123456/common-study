@@ -8,7 +8,7 @@ theme: qklhk-chocolate
 1.  [vue3源码分析——实现组件通信provide,inject](https://juejin.cn/post/7111682377507667999 "https://juejin.cn/post/7111682377507667999")
 2. [vue3源码分析——实现createRenderer，增加runtime-test](https://juejin.cn/post/7112349410528329758)
 
-本期来实现， **vue3更新流程，更新元素的props,以及更新元素的child**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/14-finish-comp-update)
+本期来实现， **vue3更新流程，更新元素的props,以及更新元素的child**，所有的[源码请查看](https://github.com/cll123456/common-study/tree/master/vue3-analysis/14-finish-elem-update)
 
 # 正文
 > 上期文章增加了`runtime-test`的测试子包，接下来的所有代码都会基于该库来进行测试,vue3是怎么做到element的更新呢，更新的流程是咋样的呢？请看下面流程图
