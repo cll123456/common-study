@@ -50,7 +50,7 @@ Note: The `license` badge image link at the top of this file should be updated w
 
 ## Contributing
 
-See [the contributing file](CONTRIBUTING.md)!
+See [the contributing file](https://github.com/RichardLitt/generator-standard-readme)!
 
 PRs accepted.
 
@@ -60,4 +60,4 @@ Small note: If editing the Readme, please conform to the [standard-readme](https
 
 ## License
 
-[MIT © Richard McRichface.](../LICENSE)
+[MIT © Richard McRichface.](https://github.com/RichardLitt/generator-standard-readme/blob/master/license)

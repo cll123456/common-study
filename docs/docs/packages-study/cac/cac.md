@@ -99,7 +99,8 @@ module.exports = {
   > 上面是最小的模板，还有最大的 [like as](./max-readme-temp.md)
 
 -   有哪些可以快速生成 readme 的库
-  >  [readme-md-generator]('https://www.npmjs.com/package/readme-md-generator')
+  >  -  readme-md-generator[查看详情](https://www.npmjs.com/package/readme-md-generator)
+  > - generator-standard-readme[查看详情](https://github.com/RichardLitt/generator-standard-readme)
 
     -   可以记录下来，下次一起分析是如何做到的
 

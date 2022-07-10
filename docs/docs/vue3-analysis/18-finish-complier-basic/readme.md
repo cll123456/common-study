@@ -53,10 +53,10 @@ theme: qklhk-chocolate
 > 看到这个ast, vue是自己手动实现了一个complier,也就是说手动实现了ast解析，下面就一起来看看吧！😉😉😉
 
 # 分步走
-在`<div>hi twinkle, {{message}}</div>`中这可以可以分成三种类型的节点。
+在`<div>hi, twinkle,`<code v-pre> {{message}}</code>`</div>`中这可以可以分成三种类型的节点。
 - element: 解析div类型， 如`<div></div>`
 - text: 解析文本类型, 如`hi, twinkle`
-- interpolation(插值)： 解析插值类型，如`{{message}}`
+- interpolation(插值)： 解析插值类型，如<code v-pre>{{message}}</code>
 
 既然可以分为三种，那就对外提供一个公共的解析方法，然后在内部来分化成其他的情况。但是对外是一个方法，**这里肯定会用到循环，循环调用那个解析字符串的方法**,如下图：
 
@@ -134,7 +134,7 @@ function parseElement(context){
 处理element来说，只要找出头部的标签，就调用patchChildren来处理内部的内容，然后处理结束标签，这个理解起来应该不是很难
 
 ## 处理Text
-处理文本类型的关键在于判断文本到哪里截止，也就是文本的长度是多少。这里的话需要判断文本里面`{{`这个符号的位置即可。
+处理文本类型的关键在于判断文本到哪里截止，也就是文本的长度是多少。这里的话需要判断文本里面<code v-pre> {{ </code>这个符号的位置即可。
 
 
 ```ts
@@ -183,7 +183,7 @@ function parseChildren(context){
 ```
 
 ## 解析插值
-上面的字符串经过前两步的解析，最终变成 `{{message}}</div>`，接下来实现最后的解析插值
+上面的字符串经过前两步的解析，最终变成 <code v-pre>{{message}}</code>，接下来实现最后的解析插值
 
 
 ```ts
@@ -215,4 +215,4 @@ function parseInterpolation(context){
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c5c318b0a19d4b3c8518bd555c17b3bc~tplv-k3u1fbpfcp-watermark.image?)
 
 # 总结
-本期主要实现了vue3中的complier的核心，是如何`<div>hi, twinkle, {{message}}</div>`这里字符串的。**vue3是采用逐步推进的方式，解析完一段就删除一段，然后传给后续的方法来继续解析**.在解析的过程中就是主要考验`js`对字符串处理的实力了👍👍👍
+本期主要实现了vue3中的complier的核心，是如何`<div>hi, twinkle,`<code v-pre> {{message}}</code>`</div>`这里字符串的。**vue3是采用逐步推进的方式，解析完一段就删除一段，然后传给后续的方法来继续解析**.在解析的过程中就是主要考验`js`对字符串处理的实力了👍👍👍

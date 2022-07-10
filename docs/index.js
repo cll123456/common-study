@@ -63,6 +63,19 @@ const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') 
           }
         })
 
+        // 判断是否存在静态资源文件asserts
+        const assertsPath = `${originPath}/${file}/asserts`
+        if (fs.existsSync(assertsPath)) {
+          // 建立目录
+          const subDirName = resolve(`./docs/${dirName}/${file}/asserts`)
+          if (!isExitFirDir(subDirName)) {
+            // 创建目录
+            fs.mkdirSync(subDirName)
+          }
+          // 把里面的所有文件文件夹都copy到docs目录下面
+          copyAllFiles(assertsPath, `${docsPath}/${file}/asserts`)
+
+        }
       }
     }
   })
@@ -93,3 +106,30 @@ const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') 
   autoGenrateSlidebarJson('packages-study', 1, '源码阅读', 'index.md')
 
 })()
+
+
+// node 递归拷贝所有的文件和文件夹
+function copyAllFiles(dirPath, targetPath) {
+  // 判断dirPath是文件还是文件夹
+  const stats = fs.statSync(dirPath)
+  if (stats.isFile()) {
+    // 判断targetPath的上一级是不是文件夹
+    const targetDirPathArr = targetPath.split('/')
+    const targetDirPath = targetDirPathArr.slice(0, targetDirPathArr.length - 1).join('/')
+    if (!isExitFirDir(targetDirPath)) {
+      // 创建目录
+      fs.mkdirSync(targetDirPath)
+    }
+    // 直接copy到targetPath目录下面
+    fs.copyFileSync(dirPath, targetPath)
+    return
+  } else if (stats.isDirectory()) {
+    // 读取所有的文件
+    const files = fs.readdirSync(dirPath)
+    files.forEach(file => {
+      copyAllFiles(`${dirPath}/${file}`, `${targetPath}/${file}`)
+    })
+  } else {
+    console.log(`${dirPath}不是文件也不是文件夹`)
+  }
+}
