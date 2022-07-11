@@ -1,0 +1,21 @@
+{
+  "name": "runtime-core",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/runtime-core.cjs.js",
+  "module": "dist/runtime-core.esm-bundler.js",
+  "types": "dist/runtime-core.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "rimraf dist & rollup -c",
+    "buildDev": "rollup -c"
+  },
+  "keywords": [],
+  "dependencies": {
+    "shared":"workspace:shared@*",
+    "reactivity":"workspace:reactivity@*"
+  },
+  "author": "",
+  "license": "ISC"
+}
