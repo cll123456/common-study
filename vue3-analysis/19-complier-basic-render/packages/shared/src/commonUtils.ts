@@ -67,3 +67,10 @@ export const handlerName = (str) => str ? 'on' + str : ''
  * @returns 
  */
 export const camize = (str) => str.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+
+/**
+ * 判断师傅是字符串类型
+ * @param val 
+ * @returns 
+ */
+export const isString = (val: unknown): val is string => typeof val === 'string'

@@ -7,4 +7,5 @@ export const enum NodeTypes {
   INTERPOLATION,
   ATTRIBUTE,
   DIRECTIVE,
+  COMPOUND_EXPRESSION
 }

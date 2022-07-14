@@ -33,7 +33,10 @@ importers:
       typescript: 4.7.4
 
   packages/complier-core:
-    specifiers: {}
+    specifiers:
+      shared: workspace:shared@*
+    dependencies:
+      shared: link:../shared
 
   packages/reactivity:
     specifiers:

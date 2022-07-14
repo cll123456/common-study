@@ -11,6 +11,9 @@
     "buildDev": "rollup -c",
     "test": "jest"
   },
+  "dependencies": {
+    "shared":"workspace:shared@*"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"

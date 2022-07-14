@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`test codegen code gen element  ---> <div></div> 1`] = `
+"import { createElementBlock : _createElementBlock, openBlock : _openBlock } from \\"vue\\"
+export function render (_ctx, _cache) {
+return (_openBlock(), _createElementBlock(\\"div\\"))
+}"
+`;
+
+exports[`test codegen code gen element and  interpolation  ---> <div>{{message}}</div> 1`] = `
+"import { createElementBlock : _createElementBlock, openBlock : _openBlock, toDisplayString : _toDisplayString } from \\"vue\\"
+export function render (_ctx, _cache) {
+return (_openBlock(), _createElementBlock(\\"div\\", null, _toDisplayString(_ctx.message)))
+}"
+`;
+
+exports[`test codegen code gen element and  str  ---> <div>hi twinkle,</div> 1`] = `
+"import { createElementBlock : _createElementBlock, openBlock : _openBlock } from \\"vue\\"
+export function render (_ctx, _cache) {
+return (_openBlock(), _createElementBlock(\\"div\\", null, \\"hi, twinkle,\\"))
+}"
+`;
+
+exports[`test codegen code gen element, str and  interpolation  ---> <div>hi twinkle, {{message}}</div> 1`] = `
+"import { createElementBlock : _createElementBlock, openBlock : _openBlock, toDisplayString : _toDisplayString } from \\"vue\\"
+export function render (_ctx, _cache) {
+return (_openBlock(), _createElementBlock(\\"div\\", null, \\"hi, twinkle, \\" + _toDisplayString(_ctx.message)))
+}"
+`;
+
+exports[`test codegen code gen interpolation  ---> {{message}} 1`] = `
+"import { toDisplayString : _toDisplayString } from \\"vue\\"
+export function render (_ctx, _cache) {
+return _toDisplayString(_ctx.message)
+}"
+`;
+
+exports[`test codegen code gen str ---> hi 1`] = `
+"export function render (_ctx, _cache) {
+return \\"hi\\"
+}"
+`;
