@@ -20,6 +20,8 @@ module.exports = {
       },
     ],
   ],
+  lastUpdated: true,
+  lastUpdatedText: "Last Updated",
   // 项目的根路径
   base: "/common-study/",
   // 语言
