@@ -58,7 +58,7 @@ const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') 
         // 找到file目录下面的所有.md后缀的文件，存在需要全部copy
         const fileList = fs.readdirSync(`${originPath}/${file}`)
         fileList.forEach(subFile => {
-          if (subFile.endsWith('.md')) {
+          if (subFile.endsWith('.md') && subFile !== fileName) {
             fs.copyFileSync(`${originPath}/${file}/${subFile}`, `${docsPath}/${file}/${subFile}`)
           }
         })
@@ -104,6 +104,7 @@ const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') 
   // 自动生成slidebar.json
   autoGenrateSlidebarJson('vue3-analysis', 0, 'vue3源码分析')
   autoGenrateSlidebarJson('packages-study', 1, '源码阅读', 'index.md')
+  autoGenrateSlidebarJson('面试', 2, '面试')
 
 })()
 
