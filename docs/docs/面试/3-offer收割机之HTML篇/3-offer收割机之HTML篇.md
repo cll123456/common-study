@@ -22,7 +22,7 @@ src 和 href 都是**用来引用外部的资源**，它们的区别如下：
 
 常见的语义化标签：
 
-```html
+```ts
 <header></header>  头部
 
 <nav></nav>  导航栏
@@ -72,31 +72,31 @@ DOCTYPE 是 HTML5 中一种标准通用标记语言的文档类型声明，它�
 
 （1）`charset`，用来描述 HTML 文档的编码类型：
 
-```html
+```ts
 <meta charset="UTF-8" >
 ```
 
 （2） `keywords`，页面关键词：
 
-```html
+```ts
 <meta name="keywords" content="关键词" />
 ```
 
 （3）`description`，页面描述：
 
-```html
+```ts
 <meta name="description" content="页面描述内容" />
 ```
 
 （4）`refresh`，页面重定向和刷新：
 
-```html
+```ts
 <meta http-equiv="refresh" content="0;url=" />
 ```
 
 （5）`viewport`，适配移动端，可以控制视口的大小和比例：
 
-```html
+```ts
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 ```
 
@@ -111,7 +111,7 @@ DOCTYPE 是 HTML5 中一种标准通用标记语言的文档类型声明，它�
 
 （6）搜索引擎索引方式：
 
-```html
+```ts
 <meta name="robots" content="index,follow" />
 ```
 
@@ -139,7 +139,7 @@ DOCTYPE 是 HTML5 中一种标准通用标记语言的文档类型声明，它�
 
 （1） audio：音频
 
-```html
+```ts
 <audio src='' controls autoplay loop='true'></audio>
 ```
 
@@ -151,7 +151,7 @@ DOCTYPE 是 HTML5 中一种标准通用标记语言的文档类型声明，它�
 
 （2）video 视频
 
-```html
+```ts
 <video src='' poster='imgs/aa.jpg' controls></video>
 ```
 
@@ -166,7 +166,7 @@ DOCTYPE 是 HTML5 中一种标准通用标记语言的文档类型声明，它�
 
 因为浏览器对视频格式支持程度不一样，为了能够兼容不同的浏览器，可以通过 source 来指定视频源。
 
-```html
+```ts
 <video>
     <source src='aa.flv' type='video/flv'></source>
     <source src='aa.mp4' type='video/mp4'></source>
@@ -238,13 +238,13 @@ HTML5 提供了两种在客户端存储数据的新方法：
 
 - 拖放：拖放是一种常见的特性，即抓取对象以后拖到另一个位置。设置元素可拖放：
 
-```html
+```ts
 <img draggable="true" />
 ```
 
 - 画布（canvas ）： canvas 元素使用 JavaScript 在网页上绘制图像。画布是一个矩形区域，可以控制其每一像素。canvas 拥有多种绘制路径、矩形、圆形、字符以及添加图像的方法。
 
-```html
+```ts
 <canvas id="myCanvas" width="200" height="100"></canvas>
 ```
 
@@ -274,7 +274,7 @@ HTML5 提供了两种在客户端存储数据的新方法：
 
 响应式页面中经常用到根据屏幕密度设置不同的图片。这时就用到了 img 标签的 srcset 属性。srcset 属性用于设置不同屏幕密度下，img 会自动加载不同的图片。用法如下：
 
-```html
+```ts
 <img src="image-128.png" srcset="image-256.png 2x" />
 ```
 
@@ -282,7 +282,7 @@ HTML5 提供了两种在客户端存储数据的新方法：
 
 按照上面的实现，不同的屏幕密度都要设置图片地址，目前的屏幕密度有 1x,2x,3x,4x 四种，如果每一个图片都设置 4 张图片，加载就会很慢。所以就有了新的 srcset 标准。代码如下：
 
-```html
+```ts
 <img src="image-128.png"
      srcset="image-128.png 128w, image-256.png 256w, image-512.png 512w"
      sizes="(max-width: 360px) 340px, 128px" />
@@ -292,7 +292,7 @@ HTML5 提供了两种在客户端存储数据的新方法：
 
 sizes 语法如下：
 
-```html
+```ts
 sizes="[media query] [length], [media query] [length] ... "
 ```
 
@@ -328,13 +328,13 @@ sizes 就是指默认显示 128px, 如果视区宽度大于 360px, 则显示 340
 
 （1）创建一个和 html 同名的 manifest 文件，然后在页面头部加入 manifest 属性：
 
-```html
+```ts
 <html lang="en" manifest="index.manifest">
 ```
 
 （2）在 `cache.manifest` 文件中编写需要离线存储的资源：
 
-```
+```ts
 CACHE MANIFEST
     #v0.11
     CACHE:
@@ -409,14 +409,14 @@ label 标签来定义表单控件的关系：当用户选择 label 标签时，�
 
 - 使用方法 1：
 
-```html
+```ts
 <label for="mobile">Number:</label>
 <input type="text" id="mobile"/>
 ```
 
 - 使用方法 2：
 
-```html
+```ts
 <label>Date:<input type="text"/></label>
 ```
 

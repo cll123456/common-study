@@ -384,7 +384,7 @@ Service Worker 是运行在浏览器背后的**独立线程**，一般可以用�
 
 Service Worker 实现缓存功能一般分为三个步骤：首先需要先注册 Service Worker，然后监听到 `install` 事件以后就可以缓存需要的文件，那么在下次用户访问的时候就可以通过拦截请求的方式查询是否存在缓存，存在缓存的话就可以直接读取缓存文件，否则就去请求数据。以下是这个步骤的实现：
 
-```
+```ts
 // index.js
 if (navigator.serviceWorker) {
   navigator.serviceWorker
@@ -816,7 +816,7 @@ LocalStorage是HTML5新引入的特性，由于有的时候我们存储的信息
 
 **LocalStorage的****常用API：**
 
-```
+```ts
 // 保存数据到 localStorage
 localStorage.setItem('key', 'value');
 
@@ -854,7 +854,7 @@ SessionStorage和LocalStorage都是在HTML5才提出来的存储方案，Session
 
 **SessionStorage的****常用API：**
 
-```
+```ts
 // 保存数据到 sessionStorage
 sessionStorage.setItem('key', 'value');
 
@@ -999,7 +999,7 @@ CORS需要浏览器和服务器同时支持，整个CORS过程都是浏览器完
 
 对于简单请求，浏览器会直接发出CORS请求，它会在请求的头信息中增加一个Orign字段，该字段用来说明本次请求来自哪个源（协议+端口+域名），服务器会根据这个值来决定是否同意这次请求。如果Orign指定的域名在许可范围之内，服务器返回的响应就会多出以下信息头：
 
-```
+```ts
 Access-Control-Allow-Origin: http://api.bob.com  // 和Orign一直
 Access-Control-Allow-Credentials: true   // 表示是否允许发送Cookie
 Access-Control-Expose-Headers: FooBar   // 指定返回其他字段的值
@@ -1037,7 +1037,7 @@ Content-Type: text/html; charset=utf-8   // 表示文档类型
 
 服务器回应的CORS的字段如下：
 
-```
+```ts
 Access-Control-Allow-Origin: http://api.bob.com  // 允许跨域的源地址
 Access-Control-Allow-Methods: GET, POST, PUT // 服务器支持的所有跨域请求的方法
 Access-Control-Allow-Headers: X-Custom-Header  // 服务器支持的所有头信息字段
@@ -1051,7 +1051,7 @@ Access-Control-Max-Age: 1728000  // 用来指定本次预检请求的有效期�
 
 **在非简单请求中，至少需要设置以下字段：**
 
-```
+```ts
 'Access-Control-Allow-Origin'  
 'Access-Control-Allow-Methods'
 'Access-Control-Allow-Headers'
@@ -1073,7 +1073,7 @@ OPTIONS请求次数过多就会损耗页面加载的性能，降低用户体验�
 
 默认情况下在跨域请求，浏览器是不带 cookie 的。但是我们可以通过设置 withCredentials 来进行传递 cookie.
 
-```
+```ts
 // 原生 xml 的设置方式
 var xhr = new XMLHttpRequest();
 xhr.withCredentials = true;
@@ -1090,7 +1090,7 @@ axios.defaults.withCredentials = true;
 
 1）原生JS实现：
 
-```
+```ts
 <script>
     var script = document.createElement('script');
     script.type = 'text/javascript';
@@ -1106,13 +1106,13 @@ axios.defaults.withCredentials = true;
 
 服务端返回如下（返回时即执行全局函数）：
 
-```
+```ts
 handleCallback({"success": true, "user": "admin"})
 ```
 
 2）Vue axios实现：
 
-```
+```ts
 this.$http = axios;
 this.$http.jsonp('http://www.domain2.com:8080/login', {
     params: {},
@@ -1124,7 +1124,7 @@ this.$http.jsonp('http://www.domain2.com:8080/login', {
 
 后端node.js代码：
 
-```
+```ts
 var querystring = require('querystring');
 var http = require('http');
 var server = http.createServer();
@@ -1165,7 +1165,7 @@ postMessage是HTML5 XMLHttpRequest Level 2中的API，且是为数不多可以�
 
 1）a.html：(domain1.com/a.html)
 
-```
+```ts
 <iframe id="iframe" src="http://www.domain2.com/b.html" style="display:none;"></iframe>
 <script>       
     var iframe = document.getElementById('iframe');
@@ -1185,7 +1185,7 @@ postMessage是HTML5 XMLHttpRequest Level 2中的API，且是为数不多可以�
 
 2）b.html：(domain2.com/b.html)
 
-```
+```ts
 <script>
     // 接收domain1的数据
     window.addEventListener('message', function(e) {
@@ -1200,7 +1200,7 @@ postMessage是HTML5 XMLHttpRequest Level 2中的API，且是为数不多可以�
 </script>
 ```
 
-```
+```ts
 <script>
     // 接收domain1的数据
     window.addEventListener('message', function(e) {
@@ -1225,7 +1225,7 @@ nginx代理跨域，实质和CORS跨域原理一样，通过配置文件设置�
 
 浏览器跨域访问js、css、img等常规静态资源被同源策略许可，但iconfont字体文件(eot|otf|ttf|woff|svg)例外，此时可在nginx的静态资源服务器中加入以下配置。
 
-```
+```ts
 location / {
   add_header Access-Control-Allow-Origin *;
 }
@@ -1241,7 +1241,7 @@ location / {
 
 nginx具体配置：
 
-```
+```ts
 #proxy服务器
 server {
     listen       81;
@@ -1269,7 +1269,7 @@ node中间件实现跨域代理，原理大致与nginx相同，都是通过启�
 
 - 前端代码：
 
-```
+```ts
 var xhr = new XMLHttpRequest();
 // 前端开关：浏览器是否读写cookie
 xhr.withCredentials = true;
@@ -1280,7 +1280,7 @@ xhr.send();
 
 - 中间件服务器代码：
 
-```
+```ts
 var express = require('express');
 var proxy = require('http-proxy-middleware');
 var app = express();
@@ -1308,7 +1308,7 @@ node + vue + webpack + webpack-dev-server搭建的项目，跨域请求接口，
 
 webpack.config.js部分配置：
 
-```
+```ts
 module.exports = {
     entry: {},
     module: {},
@@ -1333,7 +1333,7 @@ module.exports = {
 
 1）父窗口：(domain.com/a.html)
 
-```
+```ts
 <iframe id="iframe" src="http://child.domain.com/b.html"></iframe>
 <script>
     document.domain = 'domain.com';
@@ -1343,7 +1343,7 @@ module.exports = {
 
 1）子窗口：(child.domain.com/a.html)
 
-```
+```ts
 <script>
     document.domain = 'domain.com';
     // 获取父窗口中变量
@@ -1363,7 +1363,7 @@ module.exports = {
 
 1）a.html：(domain1.com/a.html)
 
-```
+```ts
 <iframe id="iframe" src="http://www.domain2.com/b.html" style="display:none;"></iframe>
 <script>
     var iframe = document.getElementById('iframe');
@@ -1381,7 +1381,7 @@ module.exports = {
 
 2）b.html：(.domain2.com/b.html)
 
-```
+```ts
 <iframe id="iframe" src="http://www.domain1.com/c.html" style="display:none;"></iframe>
 <script>
     var iframe = document.getElementById('iframe');
@@ -1394,7 +1394,7 @@ module.exports = {
 
 3）c.html：([http://www.domain1.com/c.html](https://link.zhihu.com/?target=http%3A//www.domain1.com/c.html))
 
-```
+```ts
 <script>
     // 监听b.html传来的hash值
     window.onhashchange = function () {
@@ -1412,7 +1412,7 @@ window.name属性的独特之处：name值在不同的页面（甚至不同域�
 
 1）a.html：(domain1.com/a.html)
 
-```
+```ts
 var proxy = function(url, callback) {
     var state = 0;
     var iframe = document.createElement('iframe');
@@ -1452,7 +1452,7 @@ proxy('http://www.domain2.com/b.html', function(data){
 
 3）b.html：(domain2.com/b.html)
 
-```
+```ts
 <script>
     window.name = 'This is domain2 data!';
 </script>
@@ -1472,7 +1472,7 @@ WebSocket protocol是HTML5一种新的协议。它实现了浏览器与服务器
 
 1）前端代码：
 
-```
+```ts
 <div>user input：<input type="text"></div>
 <script src="https://cdn.bootcss.com/socket.io/2.2.0/socket.io.js"></script>
 <script>
@@ -1496,7 +1496,7 @@ document.getElementsByTagName('input')[0].onblur = function() {
 
 2）Nodejs socket后台：
 
-```
+```ts
 var http = require('http');
 var socket = require('socket.io');
 // 启http服务
@@ -1589,7 +1589,7 @@ Nginx 架构的最顶层是一个 master process，这个 master process 用于�
 
 如果有一个列表，列表之中有大量的列表项，需要在点击列表项的时候响应一个事件：
 
-```
+```ts
 <ul id="list">
   <li>item 1</li>
   <li>item 2</li>
@@ -1605,7 +1605,7 @@ Nginx 架构的最顶层是一个 master process，这个 master process 用于�
 
 给上述的例子中每个列表项都绑定事件，在很多时候，需要通过 AJAX 或者用户操作动态的增加或者去除列表项元素，那么在每一次改变的时候都需要重新给新增的元素绑定事件，给即将删去的元素解绑事件；如果用了事件委托就没有这种麻烦了，因为事件是绑定在父层的，和目标元素的增减是没有关系的，执行到目标元素是在真正响应执行事件函数的过程中去匹配的，所以使用事件在动态绑定事件的情况下是可以减少很多重复工作的。
 
-```
+```ts
 // 来实现把 #list 下的 li 元素的事件代理委托到它的父层元素也就是 #list 上：
 // 给父层元素绑定事件
 document.getElementById('list').addEventListener('click', function (e) {
@@ -1644,7 +1644,7 @@ document.getElementById('list').addEventListener('click', function (e) {
 
 场景：给页面的所有的a标签添加click事件，代码如下：
 
-```
+```ts
 document.addEventListener("click", function(e) {
     if (e.target.nodeName == "A")
         console.log("a");
@@ -1657,7 +1657,7 @@ document.addEventListener("click", function(e) {
 
 这种情况下就可以使用事件委托来处理，将事件绑定在a标签的内部元素上，当点击它的时候，就会逐级向上查找，知道找到a标签为止，代码如下：
 
-```
+```ts
 document.addEventListener("click", function(e) {
     var node = e.target;
     while (node.parentNode.nodeName != "BODY") {
@@ -1706,7 +1706,7 @@ Event Loop 执行顺序如下所示：
 
 平时在开发中，可以在报错中找到执行栈的痕迹：
 
-```
+```ts
 function foo() {
   throw new Error('error')
 }
@@ -1720,7 +1720,7 @@ bar()
 
 可以看到报错在 `foo` 函数，`foo` 函数又是在 `bar` 函数中调用的。当使用递归时，因为栈可存放的函数是有**限制**的，一旦存放了过多的函数且没有得到释放的话，就会出现爆栈的问题
 
-```
+```ts
 function bar() {
   bar()
 }
@@ -1758,7 +1758,7 @@ Node 的 Event Loop 分为 6 个阶段，它们会按照**顺序**反复运行�
 
 下面来看一个例子，首先在有些情况下，定时器的执行顺序其实是**随机**的
 
-```
+```ts
 setTimeout(() => {
     console.log('setTimeout')
 }, 0)
@@ -1775,7 +1775,7 @@ setImmediate(() => {
 
 当然在某些情况下，他们的执行顺序一定是固定的，比如以下代码：
 
-```
+```ts
 const fs = require('fs')
 fs.readFile(__filename, () => {
     setTimeout(() => {
@@ -1795,7 +1795,7 @@ fs.readFile(__filename, () => {
 
 ![image](https://cdn.nlark.com/yuque/0/2021/png/1500604/1615476641927-75409d91-38a1-4797-aa75-cb02dd95d732.png)
 
-```
+```ts
 setTimeout(() => {
   console.log('timer21')
 }, 0)
@@ -1810,7 +1810,7 @@ Promise.resolve().then(function() {
 
 最后来看 Node 中的 `process.nextTick`，这个函数其实是独立于 Event Loop 之外的，它有一个自己的队列，当每个阶段完成后，如果存在 nextTick 队列，就会**清空队列中的所有回调函数**，并且优先于其他 microtask 执行。
 
-```
+```ts
 setTimeout(() => {
  console.log('timer1')
  Promise.resolve().then(function() {
@@ -1845,7 +1845,7 @@ process.nextTick(() => {
 
 事件触发一般来说会按照上面的顺序进行，但是也有特例，**如果给一个** `**body**` **中的子节点同时注册冒泡和捕获事件，事件触发会按照注册的顺序执行。**
 
-```
+```ts
 // 以下会先打印冒泡然后是捕获
 node.addEventListener(
   'click',
@@ -1877,7 +1877,7 @@ node.addEventListener(
 
 `stopImmediatePropagation` 同样也能实现阻止事件，但是还能阻止该事件目标执行别的注册事件。
 
-```
+```ts
 node.addEventListener(
   'click',
   event => {
@@ -1927,7 +1927,7 @@ V8 实现了准确式 GC，GC 算法采用了分代式垃圾回收机制。因�
 
 老生代中的空间很复杂，有如下几个空间
 
-```
+```ts
 enum AllocationSpace {
   // TODO(v8:7464): Actually map this space's memory as read-only.
   RO_SPACE,    // 不变的对象空间

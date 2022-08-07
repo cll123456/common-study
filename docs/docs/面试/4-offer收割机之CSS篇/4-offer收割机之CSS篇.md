@@ -169,7 +169,7 @@
 
 - 伪元素：在内容元素的前后插入额外的元素或样式，但是这些元素实际上并不在文档中生成。它们只在外部显示可见，但不会在文档的源代码中找到它们，因此，称为“伪”元素。例如：
 
-```css
+```ts
 p::before {content:"第一章：";}
 p::after {content:"Hot!";}
 p::first-line {background:red;}
@@ -178,7 +178,7 @@ p::first-letter {font-size:30px;}
 
 - 伪类：将特殊的效果添加到特定选择器上。它是已有元素上添加类别的，不会产生新的元素。例如：
 
-```css
+```ts
 a:hover {color: #FF00FF}
 p:first-child {color: red}
 ```
@@ -338,7 +338,7 @@ CSSSprites（精灵图），将一个页面涉及到的所有图片都包含到�
 
 还可以使用 CSS 媒体查询来判断不同的像素密度，从而选择不同的图片:
 
-```css
+```ts
 my-image { background: (low.png); }
 @media only screen and (min-device-pixel-ratio: 1.5) {
   #my-image { background: (high.png); }
@@ -455,7 +455,7 @@ my-image { background: (low.png); }
 
 - 单行文本溢出
 
-```css
+```ts
 overflow: hidden;            // 溢出隐藏
 text-overflow: ellipsis;      // 溢出用省略号显示
 white-space: nowrap;         // 规定段落中的文本不进行换行
@@ -463,7 +463,7 @@ white-space: nowrap;         // 规定段落中的文本不进行换行
 
 - 多行文本溢出
 
-```css
+```ts
 overflow: hidden;            // 溢出隐藏
 text-overflow: ellipsis;     // 溢出用省略号显示
 display:-webkit-box;         // 作为弹性伸缩盒子模型显示。
@@ -488,7 +488,7 @@ display:-webkit-box;         // 作为弹性伸缩盒子模型显示。
 
 媒体查询包含⼀个可选的媒体类型和满⾜ CSS3 规范的条件下，包含零个或多个表达式，这些表达式描述了媒体特征，最终会被解析为 true 或 false。如果媒体查询中指定的媒体类型匹配展示⽂档所使⽤的设备类型，并且所有的表达式的值都是 true，那么该媒体查询的结果为 true。那么媒体查询内的样式将会⽣效。
 
-```css
+```ts
 <!-- link元素中的CSS媒体查询 -->
 <link rel="stylesheet" media="(max-width: 800px)" href="example.css" />
 <!-- 样式表中的CSS媒体查询 -->
@@ -681,7 +681,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用浮动，将左边元素宽度设置为 200px，并且设置向左浮动。将右边元素的 margin-left 设置为 200px，宽度设置为 auto（默认为 auto，撑满整个父元素）。
 
-```css
+```ts
 .outer {
   height: 100px;
 }
@@ -699,7 +699,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用浮动，左侧元素设置固定大小，并左浮动，右侧元素设置 overflow: hidden; 这样右边就触发了 BFC，BFC 的区域不会与浮动元素发生重叠，所以两侧就不会发生重叠。
 
-```css
+```ts
 .left{
      width: 100px;
      height: 200px;
@@ -715,7 +715,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用 flex 布局，将左边元素设置为固定宽度 200px，将右边的元素设置为 flex:1。
 
-```css
+```ts
 .outer {
   display: flex;
   height: 100px;
@@ -732,7 +732,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用绝对定位，将父级元素设置为相对定位。左边元素设置为 absolute 定位，并且宽度设置为 200px。将右边元素的 margin-left 的值设置为 200px。
 
-```css
+```ts
 .outer {
   position: relative;
   height: 100px;
@@ -751,7 +751,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用绝对定位，将父级元素设置为相对定位。左边元素宽度设置为 200px，右边元素设置为绝对定位，左边定位为 200px，其余方向定位为 0。
 
-```css
+```ts
 .outer {
   position: relative;
   height: 100px;
@@ -776,7 +776,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用**绝对定位**，左右两栏设置为绝对定位，中间设置对应方向大小的 margin 的值。
 
-```css
+```ts
 .outer {
   position: relative;
   height: 100px;
@@ -808,7 +808,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用 flex 布局，左右两栏设置固定大小，中间一栏设置为 flex:1。
 
-```css
+```ts
 .outer {
   display: flex;
   height: 100px;
@@ -832,7 +832,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用浮动，左右两栏设置固定大小，并设置对应方向的浮动。中间一栏设置左右两个方向的 margin 值，注意这种方式**，中间一栏必须放到最后：**
 
-```css
+```ts
 .outer {
   height: 100px;
 }
@@ -861,7 +861,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 圣杯布局，利用浮动和负边距来实现。父级元素设置左右的 padding，三列均设置向左浮动，中间一列放在最前面，宽度设置为父级元素的宽度，因此后面两列都被挤到了下一行，通过设置 margin 负值将其移动到上一行，再利用相对定位，定位到两边。
 
-```css
+```ts
 .outer {
   height: 100px;
   padding-left: 100px;
@@ -903,7 +903,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 双飞翼布局，双飞翼布局相对于圣杯布局来说，左右位置的保留是通过中间列的 margin 值来实现的，而不是通过父元素的 padding 来实现的。本质上来说，也是通过浮动和外边距负值来实现的。
 
-```css
+```ts
 .outer {
   height: 100px;
 }
@@ -945,7 +945,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用绝对定位，先将元素的左上角通过 top:50%和 left:50%定位到页面的中心，然后再通过 translate 来调整元素的中心点到页面的中心。该方法需要**考虑浏览器兼容问题。**
 
-```css
+```ts
 .parent {
     position: relative;
 }
@@ -960,7 +960,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用绝对定位，设置四个方向的值都为 0，并将 margin 设置为 auto，由于宽高固定，因此对应方向实现平分，可以实现水平和垂直方向上的居中。该方法适用于**盒子有宽高**的情况：
 
-```css
+```ts
 .parent {
     position: relative;
 }
@@ -977,7 +977,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 利用绝对定位，先将元素的左上角通过 top:50%和 left:50%定位到页面的中心，然后再通过 margin 负值来调整元素的中心点到页面的中心。该方法适用于**盒子宽高已知**的情况
 
-```css
+```ts
 .parent {
     position: relative;
 }
@@ -993,7 +993,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 - 使用 flex 布局，通过 align-items:center 和 justify-content:center 设置容器的垂直和水平方向上为居中对齐，然后它的子元素也可以实现垂直和水平的居中。该方法要**考虑兼容的问题**，该方法在移动端用的较多：
 
-```css
+```ts
 .parent {
     display: flex;
     justify-content:center;
@@ -1003,7 +1003,7 @@ CSS**`transform`**属性允许你<u>旋转，缩放，倾斜或平移</u>给定�
 
 另外，如果父元素设置了flex布局，只需要给子元素加上`margin:auto;`就可以实现垂直居中布局
 
-```css
+```ts
 .parent{
     display:flex;
 }
@@ -1059,7 +1059,7 @@ flex 布局是 CSS3 新增的一种布局方式，可以通过将一个元素的
 
 关于兼容： 页面头部必须有 meta 声明的`viewport`。
 
-```html
+```ts
 <meta name="’viewport’" content="”width=device-width," initial-scale="1." maximum-scale="1,user-scalable=no”"/>
 ```
 
@@ -1089,7 +1089,7 @@ flex 布局是 CSS3 新增的一种布局方式，可以通过将一个元素的
 - 包含浮动元素的父级标签添加`overflow:hidden`或者`overflow:auto`
 - 使用 :after 伪元素。由于 IE6-7 不支持 :after，使用 zoom:1 触发 hasLayout\*\*
 
-```css
+```ts
 .clearfix:after{
     content: "\200B";
     display: table;
@@ -1105,7 +1105,7 @@ flex 布局是 CSS3 新增的一种布局方式，可以通过将一个元素的
 
 使用 clear 属性清除浮动，其语法如下：
 
-```css
+```ts
 clear:none|left|right|both
 ```
 
@@ -1117,7 +1117,7 @@ clear:none|left|right|both
 
 一般使用伪元素的方式清除浮动：
 
-```css
+```ts
 .clear::after{
   content:'';
   display: block;
@@ -1161,7 +1161,7 @@ clear 属性只有块级元素才有效的，而::after 等伪元素默认都是
 - **解决高度塌陷的问题**：在对子元素设置浮动后，父元素会发生高度塌陷，也就是父元素的高度变为 0。解决这个问题，只需要把父元素变成一个 BFC。常用的办法是给父元素设置`overflow:hidden`。
 - **创建自适应两栏布局**：可以用来创建自适应两栏布局：左边的宽度固定，右边的宽度自适应。
 
-```css
+```ts
 .left{
      width: 100px;
      height: 200px;
@@ -1302,7 +1302,7 @@ CSS 绘制三角形主要用到的是 border 属性，也就是边框。
 
 平时在给盒子设置边框时，往往都设置很窄，就可能误以为边框是由矩形组成的。实际上，border 属性是右三角形组成的，下面看一个例子：
 
-```css
+```ts
 div {
     width: 0;
     height: 0;
@@ -1319,7 +1319,7 @@ div {
 
 **（1）三角 1**
 
-```css
+```ts
 div {
     width: 0;
     height: 0;
@@ -1333,7 +1333,7 @@ div {
 
 **（2）三角 2**
 
-```css
+```ts
 div {
     width: 0;
     height: 0;
@@ -1347,7 +1347,7 @@ div {
 
 **（3）三角 3**
 
-```css
+```ts
 div {
     width: 0;
     height: 0;
@@ -1361,7 +1361,7 @@ div {
 
 **（4）三角 4**
 
-```css
+```ts
 div {
     width: 0;
     height: 0;
@@ -1375,7 +1375,7 @@ div {
 
 **（5）三角 5**
 
-```css
+```ts
 div {
     width: 0;
     height: 0;
@@ -1392,7 +1392,7 @@ div {
 
 用 CSS 实现扇形的思路和三角形基本一致，就是多了一个圆角的样式，实现一个 90° 的扇形：
 
-```css
+```ts
 div{
     border: 100px solid transparent;
     width: 0;
@@ -1408,7 +1408,7 @@ div{
 
 - 利用 vw 来实现：
 
-```css
+```ts
 .square {
   width: 10%;
   height: 10vw;
@@ -1418,7 +1418,7 @@ div{
 
 - 利用元素的 margin/padding 百分比是相对父元素 width 的性质来实现：
 
-```css
+```ts
 .square {
   width: 20%;
   height: 0;
@@ -1429,7 +1429,7 @@ div{
 
 - 利用子元素的 margin-top 的值来实现：
 
-```css
+```ts
 .square {
   width: 30%;
   overflow: hidden;
@@ -1446,13 +1446,13 @@ div{
 
 - **采用 transform: scale()的方式**，该方法用来定义元素的 2D 缩放转换：
 
-```css
+```ts
 transform: scale(0.5,0.5);
 ```
 
 - **采用 meta viewport 的方式**
 
-```html
+```ts
 <meta name="viewport" content="width=device-width, initial-scale=0.5, minimum-scale=0.5, maximum-scale=0.5"/>
 ```
 
@@ -1472,7 +1472,7 @@ transform: scale(0.5,0.5);
 
 1px 问题指的是：在一些 `Retina屏幕` 的机型上，移动端页面的 1px 会变得很粗，呈现出不止 1px 的效果。原因很简单——CSS 中的 1px 并不能和移动设备上的 1px 划等号。它们之间的比例关系有一个专门的属性来描述：
 
-```js
+```ts
 window.devicePixelRatio = 设备的物理像素 / CSS像素。
 ```
 
@@ -1488,19 +1488,19 @@ window.devicePixelRatio = 设备的物理像素 / CSS像素。
 
 如果之前 1px 的样式这样写：
 
-```css
+```ts
 border:1px solid #333
 ```
 
 可以先在 JS 中拿到 window.devicePixelRatio 的值，然后把这个值通过 JSX 或者模板语法给到 CSS 的 data 里，达到这样的效果（这里用 JSX 语法做示范）：
 
-```html
+```ts
 <div id="container" data-device={{window.devicePixelRatio}}></div>
 ```
 
 然后就可以在 CSS 中用属性选择器来命中 devicePixelRatio 为某一值的情况，比如说这里尝试命中 devicePixelRatio 为 2 的情况：
 
-```css
+```ts
 #container[data-device="2"] {
   border:0.5px solid #333
 }
@@ -1516,7 +1516,7 @@ border:1px solid #333
 
 代码如下：
 
-```css
+```ts
 #container[data-device="2"] {
     position: relative;
 }
@@ -1539,13 +1539,13 @@ border:1px solid #333
 
 这个思路就是对 meta 标签里几个关键属性下手：
 
-```html
+```ts
 <meta name="viewport" content="initial-scale=0.5, maximum-scale=0.5, minimum-scale=0.5, user-scalable=no">
 ```
 
 这里针对像素比为 2 的页面，把整个页面缩放为了原来的 1/2 大小。这样，本来占用 2 个物理像素的 1px 样式，现在占用的就是标准的一个物理像素。根据像素比的不同，这个缩放比例可以被计算为不同的值，用 js 代码实现如下：
 
-```js
+```ts
 const scale = 1 / window.devicePixelRatio;
 // 这里 metaEl 指的是 meta 标签对应的 Dom
 metaEl.setAttribute('content', `width=device-width,user-scalable=no,initial-scale=${scale},maximum-scale=${scale},minimum-scale=${scale}`);

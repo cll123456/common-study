@@ -13,7 +13,7 @@
 
 思路：将传入的对象作为原型
 
-```
+```ts
 function create(obj) {
   function F() {}
   F.prototype = obj
@@ -37,7 +37,7 @@ instanceof 运算符用于判断构造函数的 prototype 属性是否出现在�
 
 具体实现：
 
-```
+```ts
 function myInstanceof(left, right) {
   let proto = Object.getPrototypeOf(left), // 获取对象的原型
       prototype = right.prototype; // 获取构造函数的 prototype 对象
@@ -64,7 +64,7 @@ function myInstanceof(left, right) {
 
 （4）判断函数的返回值类型，如果是值类型，返回创建的对象。如果是引用类型，就返回这个引用类型的对象。
 
-```
+```ts
 function objectFactory() {
   let newObject = null;
   let constructor = Array.prototype.shift.call(arguments);
@@ -89,7 +89,7 @@ objectFactory(构造函数, 初始化参数);
 
 ### 4. 手写 Promise
 
-```
+```ts
 const PENDING = "pending";
 const RESOLVED = "resolved";
 const REJECTED = "rejected";
@@ -211,7 +211,7 @@ MyPromise.prototype.then = function(onResolved, onRejected) {
 - 承前：当前一个 `promise` 完成后，调用其 `resolve` 变更状态，在这个 `resolve` 里会依次调用 `callbacks` 里的回调，这样就执行了 `then` 里的方法了
 - 启后：上一步中，当 `then` 里的方法执行完成后，返回一个结果，如果这个结果是个简单的值，就直接调用新 `promise` 的 `resolve`，让其状态变更，这又会依次调用新 `promise` 的 `callbacks` 数组里的方法，循环往复。。如果返回的结果是个 `promise`，则需要等它完成之后再触发新 `promise` 的 `resolve`，所以可以在其结果的 `then` 里调用新 `promise` 的 `resolve`
 
-```
+```ts
 then(onFulfilled, onReject){
     // 保存前一个promise的this
     const self = this; 
@@ -316,7 +316,7 @@ promiseAll([p3, p1, p2]).then(res => {
 
 该方法的参数是 Promise 实例数组, 然后其 then 注册的回调方法是数组中的某一个 Promise 的状态变为 fulfilled 的时候就执行. 因为 Promise 的状态**只能改变一次**, 那么我们只需要把 Promise.race 中产生的 Promise 对象的 resolve 方法, 注入到数组中的每一个 Promise 实例中的回调函数中即可.
 
-```
+```ts
 Promise.race = function (args) {
   return new Promise((resolve, reject) => {
     for (let i = 0, len = args.length; i < len; i++) {
@@ -330,7 +330,7 @@ Promise.race = function (args) {
 
 函数防抖是指在事件被触发 n 秒后再执行回调，如果在这 n 秒内事件又被触发，则重新计时。这可以使用在一些点击请求的事件上，避免因为用户的多次点击向后端发送多次请求。
 
-```
+```ts
 // 函数防抖的实现
 function debounce(fn, wait) {
   let timer = null;
@@ -357,7 +357,7 @@ function debounce(fn, wait) {
 
 函数节流是指规定一个单位时间，在这个单位时间内，只能有一次触发事件的回调函数执行，如果在同一个单位时间内某事件被触发多次，只有一次能生效。节流可以使用在 scroll 函数的事件监听上，通过事件节流来降低事件调用的频率。
 
-```
+```ts
 // 函数节流的实现;
 function throttle(fn, delay) {
   let curTime = Date.now();
@@ -378,7 +378,7 @@ function throttle(fn, delay) {
 
 ### 10. 手写类型判断函数
 
-```
+```ts
 function getType(value) {
   // 判断数据是 null 的情况
   if (value === null) {
@@ -409,7 +409,7 @@ call 函数的实现步骤：
 6. 删除刚才新增的属性。
 7. 返回结果。
 
-```
+```ts
 // call函数实现
 Function.prototype.myCall = function(context) {
   // 判断调用对象
@@ -443,7 +443,7 @@ apply 函数的实现步骤：
 6. 删除刚才新增的属性
 7. 返回结果
 
-```
+```ts
 // apply 函数实现
 Function.prototype.myApply = function(context) {
   // 判断调用对象是否为函数
@@ -476,7 +476,7 @@ bind 函数的实现步骤：
 3. 创建一个函数返回
 4. 函数内部使用 apply 来绑定函数调用，需要判断函数作为构造函数的情况，这个时候需要传入当前函数的 this 给 apply 调用，其余情况都传入指定的上下文对象。
 
-```
+```ts
 // bind 函数实现
 Function.prototype.myBind = function(context) {
   // 判断调用对象是否为函数
@@ -500,7 +500,7 @@ Function.prototype.myBind = function(context) {
 
  函数柯里化指的是一种将使用多个参数的一个函数转换成一系列使用一个参数的函数的技术。
 
-```
+```ts
 function curry(fn, args) {
   // 获取函数需要的参数长度
   let length = fn.length;
@@ -545,7 +545,7 @@ AJAX是 Asynchronous JavaScript and XML 的缩写，指的是通过 JavaScript �
 - 在发起请求前，可以为这个对象**添加一些信息和监听函数**。比如说可以通过 setRequestHeader 方法来为请求添加头信息。还可以为这个对象添加一个状态监听函数。一个 XMLHttpRequest 对象一共有 5 个状态，当它的状态变化时会触发onreadystatechange 事件，可以通过设置监听函数，来处理请求成功后的结果。当对象的 readyState 变为 4 的时候，代表服务器返回的数据接收完成，这个时候可以通过判断请求的状态，如果状态是 2xx 或者 304 的话则代表返回正常。这个时候就可以通过 response 中的数据来对页面进行更新了。
 - 当对象的属性和监听函数设置完成后，最后调**用 send 方法来向服务器发起请求**，可以传入参数作为发送的数据体。
 
-```
+```ts
 const SERVER_URL = "/server";
 let xhr = new XMLHttpRequest();
 // 创建 Http 请求
@@ -788,13 +788,13 @@ function deepCopy(object) {
 
 输入：
 
-```
+```ts
 dateFormat(new Date('2020-12-01'), 'yyyy/MM/dd') // 2020/12/01
 dateFormat(new Date('2020-04-01'), 'yyyy/MM/dd') // 2020/04/01
 dateFormat(new Date('2020-04-01'), 'yyyy年MM月dd日') // 2020年04月01日
 ```
 
-```
+```ts
 const dateFormat = (dateInput, format)=>{
     var day = dateInput.getDate() 
     var month = dateInput.getMonth() + 1  
@@ -810,7 +810,7 @@ const dateFormat = (dateInput, format)=>{
 
 巧妙的利用两个数的和、差：
 
-```
+```ts
 a = a + b
 b = a - b
 a = a - b
@@ -824,7 +824,7 @@ a = a - b
 - 第二次取出数据数组第二个元素，随机产生一个除了索引为1的之外的索引值，并将第二个元素与该索引值对应的元素进行交换
 - 按照上面的规律执行，直到遍历完成
 
-```
+```ts
 var arr = [1,2,3,4,5,6,7,8,9,10];
 for (var i = 0; i < arr.length; i++) {
   const randomIndex = Math.round(Math.random() * (arr.length - 1 - i)) + i;
@@ -835,7 +835,7 @@ console.log(arr)
 
 还有一方法就是倒序遍历：
 
-```
+```ts
 var arr = [1,2,3,4,5,6,7,8,9,10];
 let length = arr.length,
     randomIndex,
@@ -853,7 +853,7 @@ console.log(arr)
 
 - arr=[1,2,3,4,5,6,7,8,9,10]，求和
 
-```
+```ts
 let arr=[1,2,3,4,5,6,7,8,9,10]
 let sum = arr.reduce( (total,i) => total += i,0);
 console.log(sum);
@@ -861,7 +861,7 @@ console.log(sum);
 
 - arr=[1,2,3,[[4,5],6],7,8,9]，求和
 
-```
+```ts
 var = arr=[1,2,3,[[4,5],6],7,8,9]
 let arr= arr.toString().split(',').reduce( (total,i) => total += Number(i),0);
 console.log(arr);
@@ -869,7 +869,7 @@ console.log(arr);
 
 递归实现：
 
-```
+```ts
 let arr = [1, 2, 3, 4, 5, 6] 
 
 function add(arr) {
@@ -885,7 +885,7 @@ console.log(add(arr)) // 21
 
 普通的递归思路很容易理解，就是通过循环递归的方式，一项一项地去遍历，如果每一项还是一个数组，那么就继续往下遍历，利用递归程序的方法，来实现数组的每一项的连接：
 
-```
+```ts
 let arr = [1, [2, [3, 4, 5]]];
 function flatten(arr) {
   let result = [];
@@ -906,7 +906,7 @@ flatten(arr);  //  [1, 2, 3, 4，5]
 
 从上面普通的递归函数中可以看出，其实就是对数组的每一项进行处理，那么其实也可以用reduce 来实现数组的拼接，从而简化第一种方法的代码，改造后的代码如下所示：
 
-```
+```ts
 let arr = [1, [2, [3, 4]]];
 function flatten(arr) {
     return arr.reduce(function(prev, next){
@@ -920,7 +920,7 @@ console.log(flatten(arr));//  [1, 2, 3, 4，5]
 
 这个方法的实现，采用了扩展运算符和 some 的方法，两者共同使用，达到数组扁平化的目的：
 
-```
+```ts
 let arr = [1, [2, [3, 4]]];
 function flatten(arr) {
     while (arr.some(item => Array.isArray(item))) {
@@ -935,7 +935,7 @@ console.log(flatten(arr)); //  [1, 2, 3, 4，5]
 
 可以通过 split 和 toString 两个方法来共同实现数组扁平化，由于数组会默认带一个 toString 的方法，所以可以把数组直接转换成逗号分隔的字符串，然后再用 split 方法把字符串重新转换为数组，如下面的代码所示：
 
-```
+```ts
 let arr = [1, [2, [3, 4]]];
 function flatten(arr) {
     return arr.toString().split(',');
@@ -953,7 +953,7 @@ console.log(flatten(arr)); //  [1, 2, 3, 4，5]
 
 其中 depth 是 flat 的参数，depth 是可以传递数组的展开深度（默认不填、数值是 1），即展开一层数组。如果层数不确定，参数可以传进 Infinity，代表不论多少层都要展开：
 
-```
+```ts
 let arr = [1, [2, [3, 4]]];
 function flatten(arr) {
   return arr.flat(Infinity);
@@ -967,7 +967,7 @@ console.log(flatten(arr)); //  [1, 2, 3, 4，5]
 
 在第4种方法中已经使用 toString 方法，其中仍然采用了将 JSON.stringify 的方法先转换为字符串，然后通过正则表达式过滤掉字符串中的数组的方括号，最后再利用 JSON.parse 把它转换成数组：
 
-```
+```ts
 let arr = [1, [2, [3, [4, 5]]], 6];
 function flatten(arr) {
   let str = JSON.stringify(arr);
@@ -986,7 +986,7 @@ console.log(flatten(arr)); //  [1, 2, 3, 4，5]
 
 ES6方法（使用数据结构集合）：
 
-```
+```ts
 const array = [1, 2, 3, 5, 1, 5, 9, 1, 2, 8];
 
 Array.from(new Set(array)); // [1, 2, 3, 5, 9, 8]
@@ -994,7 +994,7 @@ Array.from(new Set(array)); // [1, 2, 3, 5, 9, 8]
 
 ES5方法：使用map存储不重复的数字
 
-```
+```ts
 const array = [1, 2, 3, 5, 1, 5, 9, 1, 2, 8];
 
 uniqueArray(array); // [1, 2, 3, 5, 9, 8]
@@ -1031,7 +1031,7 @@ function _flat(arr, depth) {
 
 ### 8. 实现数组的push方法
 
-```
+```ts
 let arr = [];
 Array.prototype.push = function() {
     for( let i = 0 ; i < arguments.length ; i++){
@@ -1043,7 +1043,7 @@ Array.prototype.push = function() {
 
 ### 9. 实现数组的filter方法
 
-```
+```ts
 Array.prototype._filter = function(fn) {
     if (typeof fn !== "function") {
         throw Error('参数必须是一个函数');
@@ -1058,7 +1058,7 @@ Array.prototype._filter = function(fn) {
 
 ### 10. 实现数组的map方法
 
-```
+```ts
 Array.prototype._map = function(fn) {
    if (typeof fn !== "function") {
         throw Error('参数必须是一个函数');
@@ -1075,7 +1075,7 @@ Array.prototype._map = function(fn) {
 
 输入字符串s，以及其重复的次数，输出重复的结果，例如输入abc，2，输出abcabc。
 
-```
+```ts
 function repeat(s, n) {
     return (new Array(n + 1)).join(s);
 }
@@ -1083,7 +1083,7 @@ function repeat(s, n) {
 
 递归：
 
-```
+```ts
 function repeat(s, n) {
     return (n > 0) ? s.concat(repeat(s, --n)) : "";
 }
@@ -1093,7 +1093,7 @@ function repeat(s, n) {
 
 在字符串的原型链上添加一个方法，实现字符串翻转：
 
-```
+```ts
 String.prototype._reverse = function(a){
     return a.split("").reverse().join("");
 }
@@ -1108,7 +1108,7 @@ console.log(res);    // olleh
 
 **数字有小数版本：**
 
-```
+```ts
 let format = n => {
     let num = n.toString() // 转成字符串
     let decimals = ''
@@ -1133,7 +1133,7 @@ format(12323.33)  // '12,323.33'
 
 **数字无小数版本：**
 
-```
+```ts
 let format = n => {
     let num = n.toString() 
     let len = num.length
@@ -1155,7 +1155,7 @@ format(1232323)  // '1,232,323'
 
 JavaScript对数值有范围的限制，限制如下：
 
-```
+```ts
 Number.MAX_VALUE // 1.7976931348623157e+308
 Number.MAX_SAFE_INTEGER // 9007199254740991
 Number.MIN_VALUE // 5e-324
@@ -1168,7 +1168,7 @@ Number.MIN_SAFE_INTEGER // -9007199254740991
 
 实现一个算法进行大数的相加：
 
-```
+```ts
 function sumBigNumber(a, b) {
   let res = '';
   let temp = 0;
@@ -1201,7 +1201,7 @@ function sumBigNumber(a, b) {
 
 1）粗暴版
 
-```
+```ts
 function add (a) {
 return function (b) {
     return function (c) {
@@ -1216,7 +1216,7 @@ console.log(add(1)(2)(3)); // 6
 
 - 参数长度固定
 
-```
+```ts
 var add = function (m) {
   var temp = function (n) {
     return add(m + n);
@@ -1241,7 +1241,7 @@ console.log(add(3)(6)(9)(25)); // 43
 
 - 参数长度不固定
 
-```
+```ts
 function add (...args) {
     //求和
     return args.reduce((a, b) => a + b)
@@ -1274,25 +1274,25 @@ console.log(addCurry(1)(2, 3, 4, 5)())  //15
 
 - 通过 call 调用数组的 slice 方法来实现转换
 
-```
+```ts
 Array.prototype.slice.call(arrayLike);
 ```
 
 - 通过 call 调用数组的 splice 方法来实现转换
 
-```
+```ts
 Array.prototype.splice.call(arrayLike, 0);
 ```
 
 - 通过 apply 调用数组的 concat 方法来实现转换
 
-```
+```ts
 Array.prototype.concat.apply([], arrayLike);
 ```
 
 - 通过 Array.from 方法来实现转换
 
-```
+```ts
 Array.from(arrayLike);
 ```
 
@@ -1300,21 +1300,21 @@ Array.from(arrayLike);
 
 arr = [1,2,3,4,5,6,7,8,9,10]，求和
 
-```
+```ts
 let arr = [1,2,3,4,5,6,7,8,9,10]
 arr.reduce((prev, cur) => { return prev + cur }, 0)
 ```
 
 arr = [1,2,3,[[4,5],6],7,8,9]，求和
 
-```
+```ts
 let arr = [1,2,3,4,5,6,7,8,9,10]
 arr.flat(Infinity).reduce((prev, cur) => { return prev + cur }, 0)
 ```
 
 arr = [{a:1, b:3}, {a:2, b:3, c:4}, {a:3}]，求和
 
-```
+```ts
 let arr = [{a:9, b:3, c:4}, {a:1, b:3}, {a:3}] 
 
 arr.reduce((prev, cur) => {
@@ -1324,7 +1324,7 @@ arr.reduce((prev, cur) => {
 
 ### 16. 将js对象转化为树形结构
 
-```
+```ts
 // 转换前：
 source = [{
             id: 1,
@@ -1359,7 +1359,7 @@ tree = [{
 
 代码实现：
 
-```
+```ts
 function jsonToTree(data) {
   // 初始化结果数组，并判断输入数据的格式
   let result = []
@@ -1388,7 +1388,7 @@ function jsonToTree(data) {
 
 ES5：
 
-```
+```ts
 function sum() {
     let sum = 0
     Array.prototype.forEach.call(arguments, function(item) {
@@ -1400,7 +1400,7 @@ function sum() {
 
 ES6：
 
-```
+```ts
 function sum(...nums) {
     let sum = 0
     nums.forEach(function(item) {
@@ -1412,7 +1412,7 @@ function sum(...nums) {
 
 ### 18. 解析 URL Params 为对象
 
-```
+```ts
 let url = 'http://www.domain.com/?user=anonymous&id=123&id=456&city=%E5%8C%97%E4%BA%AC&enabled';
 parseParam(url)
 /* 结果
@@ -1424,7 +1424,7 @@ parseParam(url)
 */
 ```
 
-```
+```ts
 function parseParam(url) {
   const paramsStr = /.+\?(.+)$/.exec(url)[1]; // 将 ? 后面的字符串取出来
   const paramsArr = paramsStr.split('&'); // 将字符串以 & 分割后存到数组中
@@ -1458,7 +1458,7 @@ function parseParam(url) {
 
 三个亮灯函数：
 
-```
+```ts
 function red() {
     console.log('red');
 }
@@ -1474,7 +1474,7 @@ function yellow() {
 
 #### （1）用 callback 实现
 
-```
+```ts
 const task = (timer, light, callback) => {
     setTimeout(() => {
         if (light === 'red') {
@@ -1502,7 +1502,7 @@ task(3000, 'red', () => {
 
 上面提到过递归，可以递归亮灯的一个周期：
 
-```
+```ts
 const step = () => {
     task(3000, 'red', () => {
         task(2000, 'green', () => {
@@ -1517,7 +1517,7 @@ step()
 
 #### （2）用 promise 实现
 
-```
+```ts
 const task = (timer, light) => 
     new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -1546,7 +1546,7 @@ step()
 
 #### （3）用 async/await 实现
 
-```
+```ts
 const taskRunner =  async () => {
     await task(3000, 'red')
     await task(2000, 'green')
@@ -1558,7 +1558,7 @@ taskRunner()
 
 ### 2. 实现每隔一秒打印 1,2,3,4
 
-```
+```ts
 // 使用闭包实现
 for (var i = 0; i < 5; i++) {
   (function(i) {
@@ -1579,7 +1579,7 @@ for (let i = 0; i < 5; i++) {
 
 有30个小孩儿，编号从1-30，围成一圈依此报数，1、2、3 数到 3 的小孩儿退出这个圈， 然后下一个小孩 重新报数 1、2、3，问最后剩下的那个小孩儿的编号是多少?
 
-```
+```ts
 function childNum(num, count){
     let allplayer = [];    
     for(let i = 0; i < num; i++){
@@ -1614,7 +1614,7 @@ childNum(30, 3)
 
 ### 4. 用Promise实现图片的异步加载
 
-```
+```ts
 let imageAsync=(url)=>{
             return new Promise((resolve,reject)=>{
                 let img = new Image();
@@ -1639,7 +1639,7 @@ imageAsync("url").then(()=>{
 
 ### 5. 实现发布-订阅模式
 
-```
+```ts
 class EventCenter{
   // 1. 定义事件容器，用来装事件数组
     let handlers = {}
@@ -1691,7 +1691,7 @@ class EventCenter{
 
 ### 6. 查找文章中出现频率最高的单词
 
-```
+```ts
 function findMostWord(article) {
   // 合法性判断
   if (!article) return;
@@ -1721,7 +1721,7 @@ function findMostWord(article) {
 
 ### 7. 封装异步的fetch，使用async await方式来使用
 
-```
+```ts
 (async () => {
     class HttpRequestUtil {
         async get(url) {
@@ -1773,7 +1773,7 @@ function findMostWord(article) {
 
 所谓的原型链继承就是让新实例的原型等于父类的实例：
 
-```
+```ts
 //父方法
 function SupperFunction(flag1){
     this.flag1 = flag1;
@@ -1799,7 +1799,7 @@ subInstance.flag2;   // false
 
 ### 9. 实现双向数据绑定
 
-```
+```ts
 let obj = {}
 let input = document.getElementById('input')
 let span = document.getElementById('span')
@@ -1824,7 +1824,7 @@ input.addEventListener('keyup', function(e) {
 
 ### 10. 实现简单路由
 
-```
+```ts
 // hash路由
 class Route{
   constructor(){
@@ -1852,7 +1852,7 @@ class Route{
 
 ### 11. 实现斐波那契数列
 
-```
+```ts
 // 递归
 function fn (n){
     if(n==0) return 0
@@ -1898,7 +1898,7 @@ function fn(n) {
 
 用一个滑动窗口装没有重复的字符，枚举字符记录最大值即可。用 map 维护字符的索引，遇到相同的字符，把左边界移动过去即可。挪动的过程中记录最大长度：
 
-```
+```ts
 var lengthOfLongestSubstring = function (s) {
     let map = new Map();
     let i = -1
@@ -1927,7 +1927,7 @@ setInterval 的作用是每隔一段指定时间执行一个函数，但是这�
 
 实现思路是使用递归函数，不断地去执行 setTimeout 从而达到 setInterval 的效果
 
-```
+```ts
 function mySetInterval(fn, timeout) {
   // 控制器，控制定时器是否继续执行
   var timer = {
@@ -1949,7 +1949,7 @@ function mySetInterval(fn, timeout) {
 
 ### 14. 实现 jsonp 
 
-```
+```ts
 // 动态的加载js文件
 function addScript(src) {
   const script = document.createElement('script');
@@ -1974,7 +1974,7 @@ handleRes({a: 1, b: 2});
 
 下面方法可以用来判断一个对象中是否已存在循环引用：
 
-```
+```ts
 const isCycleObject = (obj,parent) => {
     const parentArr = parent || [obj];
     for(let i in obj) {
@@ -2005,7 +2005,7 @@ console.log(isCycleObject(o)
 
 查找有序二维数组的目标值：
 
-```
+```ts
 var findNumberIn2DArray = function(matrix, target) {
     if (matrix == null || matrix.length == 0) {
         return false;
@@ -2027,7 +2027,7 @@ var findNumberIn2DArray = function(matrix, target) {
 
 二维数组斜向打印：
 
-```
+```ts
 function printMatrix(arr){
   let m = arr.length, n = arr[0].length
     let res = []

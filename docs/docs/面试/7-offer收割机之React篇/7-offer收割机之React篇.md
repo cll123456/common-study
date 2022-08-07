@@ -8,7 +8,7 @@
 
 ### 1. React 事件机制
 
-```
+```ts
 <div onClick={this.handleClick.bind(this)}>点我</div>
 ```
 
@@ -119,7 +119,7 @@ HOC的优缺点∶
 
 具有render prop 的组件接受一个返回React元素的函数，将render的渲染逻辑注入到组件内部。在这里，"render"的命名可以是任何其他有效的标识符。
 
-```
+```ts
 // DataProvider组件内部的渲染逻辑如下
 class DataProvider extends React.Components {
      state = {
@@ -155,7 +155,7 @@ class DataProvider extends React.Components {
 
 > Hook是 React 16.8 的新增特性。它可以让你在不编写 class 的情况下使用 state 以及其他的 React 特性。通过自定义hook，可以复用代码逻辑。
 
-```
+```ts
 // 自定义一个获取订阅数据的hook
 function useSubscription() {
   const data = DataSource.getComments();
@@ -278,7 +278,7 @@ React.createClass和extends Component的bai区别主要在于：
 
 高阶组件（HOC）就是一个函数，且该函数接受一个组件作为参数，并返回一个新的组件，它只是一种组件的设计模式，这种设计模式是由react自身的组合性质必然产生的。我们将它们称为纯组件，因为它们可以接受任何动态提供的子组件，但它们不会修改或复制其输入组件中的任何行为。
 
-```
+```tsx
 // hoc的定义
 function withSubscription(WrappedComponent, selectData) {
   return class extends React.Component {
@@ -320,7 +320,7 @@ const BlogPostWithSubscription = withSubscription(BlogPost,
 
 - **权限控制：**利用高阶组件的 **条件渲染** 特性可以对页面进行权限控制，权限控制一般分为两个维度：页面级别和 页面元素级别
 
-```
+```tsx
 // HOC.js
 function withAdminAuth(WrappedComponent) {
     return class extends React.Component {
@@ -377,7 +377,7 @@ export default withAdminAuth(PageB);
 
 - **组件渲染性能追踪：**借助父组件子组件生命周期规则捕获子组件的生命周期，可以方便的对某个组件的渲染时间进行记录∶
 
-```
+```tsx
 class Home extends React.Component {
         render() {
             return (<h1>Hello World.</h1>);
@@ -412,7 +412,7 @@ class Home extends React.Component {
 
 - **页面复用**
 
-```
+```tsx
 const withFetching = fetching => WrappedComponent => {
     return class extends React.Component {
         state = {
@@ -454,7 +454,7 @@ export default withFetching(fetching('some-other-type'))(MovieList);
 
 setState 是 React 中最常用的命令，通常情况下，执行 setState 会触发 render。但是这里有个点值得关注，执行 setState 的时候不一定会重新渲染。当 setState 传入 null 时，并不会触发 render。
 
-```
+```tsx
 class App extends React.Component {
   state = {
     a: 1
@@ -629,7 +629,7 @@ React.createClass会自绑定函数方法，导致不必要的性能开销，增
 
 > React 中的一个常见模式是一个组件返回多个元素。Fragments 允许你将子列表分组，而无需向 DOM 添加额外节点。
 
-```
+```tsx
 import React, { Component, Fragment } from 'react'
 
 // 一般形式
@@ -664,7 +664,7 @@ render() {
 
 ### 17. React中可以在render访问refs吗？为什么？
 
-```
+```tsx
 <>
   <span id="name" ref={this.spanRef}>{this.state.title}</span>
   <span>{
@@ -689,7 +689,7 @@ Portals 是React 16提供的官方解决方案，使得组件可以脱离父组�
 
 Portals语法如下：
 
-```
+```tsx
 ReactDOM.createPortal(child, container);
 ```
 
@@ -700,7 +700,7 @@ ReactDOM.createPortal(child, container);
 
 一般情况下，组件的render函数返回的元素会被挂载在它的父级组件上：
 
-```
+```tsx
 import DemoComponent from './DemoComponent';
 render() {
   // DemoComponent元素会被挂载在id为parent的div的元素上
@@ -714,7 +714,7 @@ render() {
 
 然而，有些元素需要被挂载在更高层级的位置。最典型的应用场景：当父组件具有`overflow: hidden`或者`z-index`的样式设置时，组件有可能被其他元素遮挡，这时就可以考虑要不要使用Portal使组件的挂载脱离父组件。例如：对话框，模态窗。
 
-```
+```tsx
 import DemoComponent from './DemoComponent';
 render() {
   // react会将DemoComponent组件直接挂载在真实的 dom 节点 domNode 上，生命周期还和16版本之前相同。
@@ -821,7 +821,7 @@ React官方的解释：
 
 例如，下面的代码在非受控组件中接收单个属性：
 
-```
+```tsx
 class NameForm extends React.Component {
   constructor(props) {
     super(props);
@@ -859,7 +859,7 @@ Refs 提供了一种方式，用于访问在 render 方法中创建的 React 元
 
 Refs 是使用 `React.createRef()` 方法创建的，他通过 `ref` 属性附加到 React 元素上。要在整个组件中使用 Refs，需要将 `ref` 在构造函数中分配给其实例属性：
 
-```
+```tsx
 class MyComponent extends React.Component {
   constructor(props) {
     super(props)
@@ -873,7 +873,7 @@ class MyComponent extends React.Component {
 
 由于函数组件没有实例，因此不能在函数组件上直接使用 `ref`：
 
-```
+```tsx
 function MyFunctionalComponent() {
   return <input />;
 }
@@ -893,7 +893,7 @@ class Parent extends React.Component {
 
 但可以通过闭合的帮助在函数组件内部进行使用 Refs：
 
-```
+```tsx
 function CustomTextInput(props) {
   // 这里必须声明 textInput，这样 ref 回调才可以引用它
   let textInput = null;
@@ -929,7 +929,7 @@ function CustomTextInput(props) {
 
 - 在构造函数中绑定this
 
-```
+```tsx
 constructor(props){
       super(props); 
        this.state={
@@ -941,7 +941,7 @@ constructor(props){
 
 - 函数定义的时候使用箭头函数
 
-```
+```tsx
 constructor(props){
     super(props);
     this.state={
@@ -955,7 +955,7 @@ constructor(props){
 
 - 函数调用是使用bind绑定this
 
-```
+```tsx
  <button onClick={this.getMsg.bind(this)}>点我</button>
 ```
 
@@ -970,7 +970,7 @@ constructor(props){
 
 所以，当在React class中需要设置state的初始值或者绑定事件时，需要加上构造函数，官方Demo：
 
-```
+```tsx
 class LikeButton extends React.Component {
   constructor() {
     super();
@@ -1043,7 +1043,7 @@ React.forwardRef 会创建一个React组件，这个组件能够将其接受的 
 
 - 首先调用了`setState` 入口函数，入口函数在这里就是充当一个分发器的角色，根据入参的不同，将其分发到不同的功能函数中去；
 
-```
+```tsx
 ReactComponent.prototype.setState = function (partialState, callback) {
   this.updater.enqueueSetState(this, partialState);
   if (callback) {
@@ -1054,7 +1054,7 @@ ReactComponent.prototype.setState = function (partialState, callback) {
 
 - `enqueueSetState` 方法将新的 `state` 放进组件的状态队列里，并调用 `enqueueUpdate` 来处理将要更新的实例对象；
 
-```
+```tsx
 enqueueSetState: function (publicInstance, partialState) {
   // 根据 this 拿到对应的组件实例
   var internalInstance = getInternalInstanceReadyForUpdate(publicInstance, 'setState');
@@ -1068,7 +1068,7 @@ enqueueSetState: function (publicInstance, partialState) {
 
 -  在 `enqueueUpdate` 方法中引出了一个关键的对象——`batchingStrategy`，该对象所具备的`isBatchingUpdates` 属性直接决定了当下是要走更新流程，还是应该排队等待；如果轮到执行，就调用 `batchedUpdates` 方法来直接发起更新流程。由此可以推测，`batchingStrategy` 或许正是 React 内部专门用于管控批量更新的对象。
 
-```
+```tsx
 function enqueueUpdate(component) {
   ensureInjected();
   // 注意这一句是问题的关键，isBatchingUpdates标识着当前是否处于批量创建/更新组件的阶段
@@ -1125,7 +1125,7 @@ setState 并不是单纯同步/异步的，它的表现会因调用场景的不�
 
 调用 `setState` 时，组件的 `state` 并不会立即改变， `setState` 只是把要修改的 `state` 放入一个队列， `React` 会优化真正的执行时机，并出于性能原因，会将 `React` 事件处理程序中的多次`React` 事件处理程序中的多次 `setState` 的状态修改合并成一次状态修改。 最终更新只产生一次组件及其子组件的重新渲染，这对于大型应用程序中的性能提升至关重要。
 
-```
+```tsx
 this.setState({
   count: this.state.count + 1    ===>    入队，[count+1的任务]
 });
@@ -1144,7 +1144,7 @@ this.setState({
 
 通过实现组件的getDefaultProps，对属性设置默认值（ES5的写法）：
 
-```
+```tsx
 var ShowTitle = React.createClass({
   getDefaultProps:function(){
     return{
@@ -1161,7 +1161,7 @@ var ShowTitle = React.createClass({
 
 `setState` 的第二个参数是一个可选的回调函数。这个回调函数将在组件重新渲染后执行。等价于在 `componentDidUpdate` 生命周期内执行。通常建议使用 `componentDidUpdate` 来代替此方式。在这个回调函数中你可以拿到更新后 `state` 的值：
 
-```
+```tsx
 this.setState({
     key1: newState1,
     key2: newState2,
@@ -1175,7 +1175,7 @@ this.setState({
 
 setState()用于设置状态对象，其语法如下：
 
-```
+```tsx
 setState(object nextState[, function callback])
 ```
 
@@ -1192,7 +1192,7 @@ setState(object nextState[, function callback])
 
 replaceState()方法与setState()类似，但是方法只会保留nextState中状态，原state不在nextState中的状态都会被删除。其语法如下：
 
-```
+```tsx
 replaceState(object nextState[, function callback])
 ```
 
@@ -1211,7 +1211,7 @@ this.state通常是用来初始化state的，this.setState是用来修改state�
 
 通过connect和mapStateToProps将state注入到组件中：
 
-```
+```tsx
 import { connect } from 'react-redux'
 import { setVisibilityFilter } from '@/reducers/Todo/actions'
 import Link from '@/containers/Todo/components/Link'
@@ -1248,7 +1248,7 @@ export default connect(
 
 **高阶组件实现源码∶**
 
-```
+```tsx
 import React from 'react'
 import PropTypes from 'prop-types'
 
@@ -1358,7 +1358,7 @@ state的主要作用是用于组件保存、控制以及修改自己的状态，
 
 需要注意的是，**如果props传入的内容不需要影响到你的state，那么就需要返回一个null**，这个返回值是必须的，所以尽量将其写到函数的末尾：
 
-```
+```tsx
 static getDerivedStateFromProps(nextProps, prevState) {
     const {type} = nextProps;
     // 当传入的type发生变化的时候，更新state
@@ -1376,7 +1376,7 @@ static getDerivedStateFromProps(nextProps, prevState) {
 
 **React**为我们提供了**PropTypes**以供验证使用。当我们向**Props**传入的数据无效（向Props传入的数据类型和验证的数据类型不符）就会在控制台发出警告信息。它可以避免随着应用越来越复杂从而出现的问题。并且，它还可以让程序变得更易读。
 
-```
+```tsx
 import PropTypes from 'prop-types';
 
 class Greeting extends React.Component {
@@ -1430,7 +1430,7 @@ constructor中通常只做两件事：
 - 初始化组件的 state
 - 给事件处理方法绑定 this
 
-```
+```tsx
 constructor(props) {
   super(props);
   // 不要在构造函数中调用 setState，可以直接给 state 设置初始值
@@ -1441,7 +1441,7 @@ constructor(props) {
 
 ##### （2）getDerivedStateFromProps
 
-```
+```tsx
 static getDerivedStateFromProps(props, state)
 ```
 
@@ -1451,7 +1451,7 @@ static getDerivedStateFromProps(props, state)
 
 该函数会在装载时，接收到新的 `props` 或者调用了 `setState` 和 `forceUpdate` 时被调用。如当接收到新的属性想修改 `state` ，就可以使用。
 
-```
+```tsx
 // 当 props.counter 变化时，赋值给 state 
 class App extends React.Component {
   constructor(props) {
@@ -1486,7 +1486,7 @@ class App extends React.Component {
 
 现在可以显式传入 `counter` ，但是这里有个问题，如果想要通过点击实现 `state.counter` 的增加，但这时会发现值不会发生任何变化，一直保持 `props` 传进来的值。这是由于在 React 16.4^ 的版本中 `setState` 和 `forceUpdate` 也会触发这个生命周期，所以当组件内部 `state` 变化后，就会重新走这个方法，同时会把 `state` 值赋值为 `props` 的值。因此需要多加一个字段来记录之前的 `props` 值，这样就会解决上述问题。具体如下：
 
-```
+```tsx
 // 这里只列出需要变化的地方
 class App extends React.Component {
   constructor(props) {
@@ -1548,7 +1548,7 @@ componentDidMount()会在组件挂载后（插入 DOM 树中）立即调。该�
 
 在组件装载之后，将计数数字变为1：
 
-```
+```tsx
 class App extends React.Component  {
   constructor(props) {
     super(props)
@@ -1583,7 +1583,7 @@ class App extends React.Component  {
 
 ##### （1）shouldComponentUpdate
 
-```
+```tsx
 shouldComponentUpdate(nextProps, nextState)
 ```
 
@@ -1591,7 +1591,7 @@ shouldComponentUpdate(nextProps, nextState)
 
 - **setState 函数在任何情况下都会导致组件重新渲染吗？例如下面这种情况：**
 
-```
+```tsx
 this.setState({number: this.state.number})
 ```
 
@@ -1611,7 +1611,7 @@ this.setState({number: this.state.number})
 
 ##### （2）getSnapshotBeforeUpdate
 
-```
+```tsx
 getSnapshotBeforeUpdate(prevProps, prevState)
 ```
 
@@ -1624,7 +1624,7 @@ componentDidUpdate() 会在更新后会被立即调用，首次渲染不会执�
 - 当组件更新后，对 DOM 进行操作； 
 - 如果你对更新前后的 props 进行了比较，也可以选择在此处进行网络请求；（例如，当 props 未发生变化时，则不会执行网络请求）。 
 
-```
+```tsx
 componentDidUpdate(prevProps, prevState, snapshot){}
 ```
 
@@ -1705,7 +1705,7 @@ React常见的生命周期如下：
 
 返回的值作为componentDidUpdate的第三个参数。与willMount不同的是，getSnapshotBeforeUpdate会在最终确定的render执行之前执行，也就是能保证其获取到的元素状态与didUpdate中获取到的元素状态相同。官方参考代码：
 
-```
+```tsx
 class ScrollingList extends React.Component {
   constructor(props) {
     super(props);
@@ -1756,7 +1756,7 @@ class ScrollingList extends React.Component {
 
 需要注意的是，**如果props传入的内容不需要影响到你的state，那么就需要返回一个null**，这个返回值是必须的，所以尽量将其写到函数的末尾：
 
-```
+```tsx
 static getDerivedStateFromProps(nextProps, prevState) {
     const {type} = nextProps;
     // 当传入的type发生变化的时候，更新state
@@ -1778,7 +1778,7 @@ react的父级组件的render函数重新渲染会引起子组件的render方法
 
 使用方法如下：
 
-```
+```tsx
 shouldComponentUpdate(nexrProps) {
     if (this.props.num === nexrProps.num) {
         return false
@@ -1799,7 +1799,7 @@ shouldComponentUpdate提供了两个参数nextProps和nextState，表示下一�
 
 （1）使用setState改变数据之前，先采用ES6中assgin进行拷贝，但是assgin只深拷贝的数据的第一层，所以说不是最完美的解决办法：
 
-```
+```tsx
 const o2 = Object.assign({},this.state.obj)
     o2.student.count = '00000';
     this.setState({
@@ -1809,7 +1809,7 @@ const o2 = Object.assign({},this.state.obj)
 
 （2）使用JSON.parse(JSON.stringfy())进行深拷贝，但是遇到数据为undefined和函数时就会错。
 
-```
+```tsx
 const o2 = JSON.parse(JSON.stringify(this.state.obj))
     o2.student.count = '00000';
     this.setState({
@@ -1918,7 +1918,7 @@ React组件间通信常见的几种情况:
 
 **父组件向子组件通信**：父组件通过 props 向子组件传递需要的信息。
 
-```
+```tsx
 // 子组件: Child
 const Child = props =>{
   return <p>{props.name}</p>
@@ -1931,7 +1931,7 @@ const Parent = ()=>{
 
 **子组件向父组件通信**：: props+回调的方式。
 
-```
+```tsx
 // 子组件: Child
 const Child = props =>{
   const cb = msg =>{
@@ -1961,7 +1961,7 @@ class Parent extends Component {
 - 使用props，利用中间组件层层传递,但是如果父组件结构较深，那么中间每一层组件都要去传递props，增加了复杂度，并且这些props并不是中间组件自己需要的。
 - 使用context，context相当于一个大容器，可以把要通信的内容放在这个容器中，这样不管嵌套多深，都可以随意取用，对于跨越多层的全局数据可以使用context实现。
 
-```
+```tsx
 // context方式实现跨级组件通信 
 // Context 设计目的是为了共享那些对于一个组件树而言是“全局”的数据
 const BatteryContext = createContext();
@@ -2049,7 +2049,7 @@ class Parent extends Component {
 
 路由匹配是通过比较 `<Route>` 的 path 属性和当前地址的 pathname 来实现的。当一个 `<Route>` 匹配成功时，它将渲染其内容，当它不匹配时就会渲染 null。没有路径的 `<Route>` 将始终被匹配。
 
-```
+```tsx
 // when location = { pathname: '/about' }
 <Route path='/about' component={About}/> // renders <About/>
 <Route path='/contact' component={Contact}/> // renders null
@@ -2060,7 +2060,7 @@ class Parent extends Component {
 
 `<Switch>` 用于将 `<Route>` 分组。
 
-```
+```tsx
 <Switch>
     <Route exact path="/" component={Home} />
     <Route path="/about" component={About} />
@@ -2074,14 +2074,14 @@ class Parent extends Component {
 
 `<Link>` 组件来在你的应用程序中创建链接。无论你在何处渲染一个 `<Link>` ，都会在应用程序的 HTML 中渲染锚（`<a>`）。
 
-```
+```tsx
 <Link to="/">Home</Link>   
 // <a href='/'>Home</a>
 ```
 
 `<NavLink>` 是一种特殊类型的 `<Link>` 当它的 to属性与当前地址匹配时，可以将其定义为"活跃的"。
 
-```
+```tsx
 // location = { pathname: '/react' }
 <NavLink to="/react" activeClassName="hurray">
     React
@@ -2095,7 +2095,7 @@ class Parent extends Component {
 
 使用`<Redirect>`组件实现路由的重定向：
 
-```
+```tsx
 <Switch>
   <Redirect from='/users/:id' to='/users/profile/:id'/>
   <Route path='/users/profile/:id' component={Profile}/>
@@ -2127,7 +2127,7 @@ class Parent extends Component {
 
 a标签默认事件禁掉之后做了什么才实现了跳转?
 
-```
+```tsx
 let domArr = document.getElementsByTagName('a')
 [...domArr].forEach(item=>{
     item.addEventListener('click',function () {
@@ -2158,14 +2158,14 @@ let domArr = document.getElementsByTagName('a')
 
 - 如果React >= 16.8 时可以使用 React Router中提供的Hooks
 
-```
+```tsx
 import { useHistory } from "react-router-dom";
 let history = useHistory();
 ```
 
 2.使用this.props.history获取历史对象
 
-```
+```tsx
 let history = this.props.history;
 ```
 
@@ -2173,7 +2173,7 @@ let history = this.props.history;
 
 当路由变化时，即组件的props发生了变化，会调用componentWillReceiveProps等生命周期钩子。那需要做的只是： 当路由改变时，根据路由，也去请求数据：
 
-```
+```tsx
 class NewsList extends Component {
   componentDidMount () {
      this.fetchData(this.props.location);
@@ -2209,7 +2209,7 @@ React-Router 支持使用 hash（对应 HashRouter）和 browser（对应 Browse
 
 它使用 HTML5 提供的 history API（pushState、replaceState 和 popstate 事件）来保持 UI 和 URL 的同步。由此可以看出，**BrowserRouter 是使用 HTML 5 的 history API 来控制路由跳转的：**
 
-```
+```tsx
 <BrowserRouter
     basename={string}
     forceRefresh={bool}
@@ -2222,7 +2222,7 @@ React-Router 支持使用 hash（对应 HashRouter）和 browser（对应 Browse
 
 - basename 所有路由的基准 URL。basename 的正确格式是前面有一个前导斜杠，但不能有尾部斜杠；
 
-```
+```tsx
 <BrowserRouter basename="/calendar">
     <Link to="/today" />
 </BrowserRouter>
@@ -2230,14 +2230,14 @@ React-Router 支持使用 hash（对应 HashRouter）和 browser（对应 Browse
 
 等同于
 
-```
+```tsx
 <a href="/calendar/today" />
 ```
 
 - forceRefresh 如果为 true，在导航的过程中整个页面将会刷新。一般情况下，只有在不支持 HTML5 history API 的浏览器中使用此功能；
 - getUserConfirmation 用于确认导航的函数，默认使用 window.confirm。例如，当从 /a 导航至 /b 时，会使用默认的 confirm 函数弹出一个提示，用户点击确定后才进行导航，否则不做任何处理；
 
-```
+```tsx
 // 这是默认的确认函数
 const getConfirmation = (message, callback) => {
   const allowTransition = window.confirm(message);
@@ -2256,7 +2256,7 @@ const getConfirmation = (message, callback) => {
 
 使用 URL 的 hash 部分（即 window.location.hash）来保持 UI 和 URL 的同步。由此可以看出，**HashRouter 是通过 URL 的 hash 属性来控制路由跳转的：**
 
-```
+```tsx
 <HashRouter
     basename={string}
     getUserConfirmation={func}
@@ -2281,7 +2281,7 @@ Switch 通常被用来包裹 Route，用于渲染与路径匹配的第一个子 
 
 假如不加 `<Switch>` ：
 
-```
+```tsx
 import { Route } from 'react-router-dom'
 
 <Route path="/" component={Home}></Route>
@@ -2290,7 +2290,7 @@ import { Route } from 'react-router-dom'
 
 Route 组件的 path 属性用于匹配路径，因为需要匹配 `/` 到 `Home`，匹配 `/login` 到 `Login`，所以需要两个 Route，但是不能这么写。这样写的话，当 URL 的 path 为 “/login” 时，`<Route path="/" />`和`<Route path="/login" />` 都会被匹配，因此页面会展示 Home 和 Login 两个组件。这时就需要借助 `<Switch>` 来做到只显示一个匹配组件：
 
-```
+```tsx
 import { Switch, Route} from 'react-router-dom'
     
 <Switch>
@@ -2301,7 +2301,7 @@ import { Switch, Route} from 'react-router-dom'
 
 此时，再访问 “/login” 路径时，却只显示了 Home 组件。这是就用到了exact属性，它的作用就是精确匹配路径，经常与`<Switch>` 联合使用。只有当 URL 和该 `<Route>` 的 path 属性完全一致的情况下才能匹配上：
 
-```
+```tsx
 import { Switch, Route} from 'react-router-dom'
    
 <Switch>
@@ -2346,7 +2346,7 @@ Redux源码主要分为以下几个模块文件
 - bindActionCreators.js 可以让开发者在不直接接触dispacth的前提下进行更改state的操作
 - applyMiddleware.js 这个方法通过中间件来增强dispatch的功能
 
-```
+```tsx
 const actionTypes = {
     ADD: 'ADD',
     CHANGEINFO: 'CHANGEINFO',
@@ -2450,7 +2450,7 @@ export default function createStore(reducer, initialState, middleFunc) {
 
 - 配置中间件，在store的创建中配置
 
-```
+```tsx
 import {createStore, applyMiddleware, compose} from 'redux';
 import reducer from './reducer';
 import thunk from 'redux-thunk'
@@ -2469,7 +2469,7 @@ export default store;
 
 - 添加一个返回函数的actionCreator，将异步请求逻辑放在里面
 
-```
+```tsx
 /**
   发送get请求，并生成相应action，更新store的函数
   @param url {string} 请求地址
@@ -2487,7 +2487,7 @@ export const getHttpAction = (url, func) => (dispatch) => {
 
 - 生成action，并发送action
 
-```
+```tsx
 componentDidMount(){
     var action = getHttpAction('/getData', getInitTodoItemAction)
     // 发送函数类型的action时，该action的函数体会自动执行
@@ -2521,7 +2521,7 @@ redux-saga可以捕获action，然后执行一个函数，那么可以把异步�
 
 - 配置中间件
 
-```
+```tsx
 import {createStore, applyMiddleware, compose} from 'redux';
 import reducer from './reducer';
 import createSagaMiddleware from 'redux-saga'
@@ -2542,7 +2542,7 @@ export default store;
 
 - 将异步请求放在sagas.js中
 
-```
+```tsx
 import {takeEvery, put} from 'redux-saga/effects'
 import {initTodoList} from './actionCreator'
 import {GET_INIT_ITEM} from './actionTypes'
@@ -2570,7 +2570,7 @@ export default mySaga
 
 - 发送action
 
-```
+```tsx
 componentDidMount(){
   const action = getInitTodoItemAction()
   store.dispatch(action)
@@ -2590,7 +2590,7 @@ react-redux 数据传输∶ view-->action-->reducer-->store-->view。看下点�
 
 代码示例∶
 
-```
+```tsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
@@ -2660,7 +2660,7 @@ Redux 的中间件提供的是位于 action 被发起之后，到达 reducer 之
 
 applyMiddleware源码：
 
-```
+```tsx
 export default function applyMiddleware(...middlewares) {
     return createStore => (...args) => {
         // 利用传入的createStore和reducer和创建一个store
@@ -2699,7 +2699,7 @@ redux-saga是一个管理redux应用异步操作的中间件，用于代替 redu
 
 可以让多个 saga 任务并行被 fork 执行。
 
-```
+```tsx
 import {
     fork,
     take
@@ -2719,7 +2719,7 @@ takeLatest 不允许多个 saga 任务并行地执行。一旦接收到新的发
 
 在处理 AJAX 请求的时候，如果只希望获取最后那个请求的响应， takeLatest 就会非常有用。
 
-```
+```tsx
 import {
     cancel,
     fork,
@@ -2857,7 +2857,7 @@ React-Hooks 是 React 团队在 React 组件开发实践中，逐渐认知到的
 
 **（1）类组件：**所谓类组件，就是基于 ES6 Class 这种写法，通过继承 React.Component 得来的 React 组件。以下是一个类组件：
 
-```
+```tsx
 class DemoClass extends React.Component {
   state = {
     text: ""
@@ -2892,7 +2892,7 @@ class DemoClass extends React.Component {
 
 **（2）函数组件**：函数组件就是以函数的形态存在的 React 组件。早期并没有 React-Hooks，函数组件内部无法定义和维护 state，因此它还有一个别名叫“无状态组件”。以下是一个函数组件：
 
-```
+```tsx
 function DemoFunction(props) {
   const { text } = props
   return (
@@ -2946,7 +2946,7 @@ React-Hooks 是一套能够使函数组件更强大、更灵活的“钩子”�
 
 useState 的用法：
 
-```
+```tsx
 const [count, setCount] = useState(0)
 ```
 
@@ -2958,7 +2958,7 @@ const [count, setCount] = useState(0)
 
 ##### 数组的解构赋值
 
-```
+```tsx
 const foo = [1, 2, 3];
 const [one, two, three] = foo;
 console.log(one);   // 1
@@ -2968,7 +2968,7 @@ console.log(three); // 3
 
 ##### 对象的解构赋值
 
-```
+```tsx
 const user = {
   id: 888,
   name: "xiaoxin"
@@ -2987,7 +2987,7 @@ console.log(name);  // "xiaoxin"
 
 下面来看看如果 useState 返回对象的情况：
 
-```
+```tsx
 // 第一次使用
 const { state, setState } = useState(false);
 // 第二次使用
@@ -3085,7 +3085,7 @@ React Hooks 的限制主要有两条：
 
 使用push直接更改数组无法获取到新值，应该采用解构方式，但是在class里面不会有这个问题。代码示例：
 
-```
+```tsx
 function Indicatorfilter() {
   let [num,setNums] = useState([0,1,2,3])
   const test = () => {
@@ -3146,7 +3146,7 @@ class Indicatorfilter extends React.Component<any,any>{
 
 TableDeail是一个公共组件，在调用它的父组件里面，我们通过set改变columns的值，以为传递给TableDeail 的 columns是最新的值，所以tabColumn每次也是最新的值，但是实际tabColumn是最开始的值，不会随着columns的更新而更新：
 
-```
+```tsx
 const TableDeail = ({
     columns,
 }:TableData) => {
@@ -3186,13 +3186,13 @@ const TableDeail = ({
 
 - `constructor`：函数组件不需要构造函数，可以通过调用 `**useState** **来初始化 state**`。如果计算的代价比较昂贵，也可以传一个函数给 `useState`。
 
-```
+```tsx
 const [num, UpdateNum] = useState(0)
 ```
 
 - `getDerivedStateFromProps`：一般情况下，我们不需要使用它，可以在**渲染过程中更新 state**，以达到实现 `getDerivedStateFromProps` 的目的。
 
-```
+```tsx
 function ScrollView({row}) {
   let [isScrollingDown, setIsScrollingDown] = useState(false);
   let [prevRow, setPrevRow] = useState(null);
@@ -3209,7 +3209,7 @@ React 会立即退出第一次渲染并用更新后的 state 重新运行组件�
 
 - `shouldComponentUpdate`：可以用 `**React.memo**` 包裹一个组件来对它的 `props` 进行浅比较
 
-```
+```tsx
 const Button = React.memo((props) => {
   // 具体的组件
 });
@@ -3220,7 +3220,7 @@ const Button = React.memo((props) => {
 - `render`：这是函数组件体本身。
 - `componentDidMount`, `componentDidUpdate`： `useLayoutEffect` 与它们两的调用阶段是一样的。但是，我们推荐你**一开始先用 useEffect**，只有当它出问题的时候再尝试使用 `useLayoutEffect`。`useEffect` 可以表达所有这些的组合。
 
-```
+```tsx
 // componentDidMount
 useEffect(()=>{
   // 需要在 componentDidMount 执行的内容
@@ -3239,7 +3239,7 @@ useEffect(() => {
 
 - `componentWillUnmount`：相当于 `useEffect `里面返回的 `cleanup` 函数
 
-```
+```tsx
 // componentDidMount/componentWillUnmount
 useEffect(()=>{
   // 需要在 componentDidMount 执行的内容
@@ -3312,7 +3312,7 @@ Virtual DOM本质上是JavaScript的对象，它可以很方便的跨平台操�
 
 一个简单的例子：
 
-```
+```tsx
 import React from 'react'
 export default class ExampleComponent extends React.Component {
   render() {
@@ -3326,7 +3326,7 @@ export default class ExampleComponent extends React.Component {
 
 这里，首先假定 ExampleComponent 可见，然后再改变它的状态，让它不可见 。映射为真实的 DOM 操作是这样的，React 会创建一个 div 节点。
 
-```
+```tsx
 <div class="visible">visbile</div>
 ```
 
@@ -3411,7 +3411,7 @@ Vue 的整体 diff 策略与 React 对齐，虽然缺乏时间切片能力，但
 
 使用displayName命名组件：
 
-```
+```tsx
 export default React.createClass({
   displayName: 'TodoApp',
   // ...
@@ -3420,7 +3420,7 @@ export default React.createClass({
 
 React推荐的方法：
 
-```
+```tsx
 export default class TodoApp extends React.Component {
   // ...
 }
@@ -3479,7 +3479,7 @@ hooks很好的解决了上述问题，hooks提供了很多方法
 
 ### 3. react 实现一个全局的 dialog
 
-```
+```tsx
 import React, { Component } from 'react';
 import { is, fromJS } from 'immutable';
 import ReactDOM from 'react-dom';
@@ -3567,7 +3567,7 @@ let Box = ReactD
 
 子类：
 
-```
+```tsx
 //子类jsx
 import React, { Component } from 'react';
 class Child extends Component {
@@ -3594,7 +3594,7 @@ export default Child;
 
 css：
 
-```
+```tsx
 .dialog-con{
     position: fixed;
     top: 0;
@@ -3609,7 +3609,7 @@ css：
 
 封装数据持久化组件：
 
-```
+```tsx
 】let storage={
     // 增加
     set(key, value){
@@ -3637,13 +3637,13 @@ export default Storage;
 
 **（1）首先要安装redux-persist：**
 
-```
+```tsx
 npm i redux-persist
 ```
 
 **（2）对于reducer和action的处理不变，只需修改store的生成代码，修改如下：**
 
-```
+```tsx
 import {createStore} from 'redux'
 import reducers from '../reducers/index'
 import {persistStore, persistReducer} from 'redux-persist';
@@ -3662,7 +3662,7 @@ export default store
 
 **（3）在index.js中，将PersistGate标签作为网页内容的父标签：**
 
-```
+```tsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux'
@@ -3745,7 +3745,7 @@ react可以通过高阶组件（Higher Order Components-- HOC）来扩展，而v
 
 - 直接创建一个具有 typescript 的 Create React App 项目：
 
-```
+```tsx
  npx create-react-app demo --typescript
 ```
 
@@ -3753,7 +3753,7 @@ react可以通过高阶组件（Higher Order Components-- HOC）来扩展，而v
 
 - 通过命令将 typescript 引入项目：
 
-```
+```tsx
 npm install --save typescript @types/node @types/react @types/react-dom @types/jest
 ```
 
@@ -3801,7 +3801,7 @@ React 还可以使用 Node 进行服务器渲染，或使用 React Native 开发
 
 在React中，当涉及组件嵌套，在父组件中使用`props.children`把所有子组件显示出来。如下：
 
-```
+```tsx
 function ParentComponent(props){
     return (
         <div>
@@ -3821,7 +3821,7 @@ function ParentComponent(props){
 
 首先是子组件：
 
-```
+```tsx
 //子组件
 function RadioOption(props) {
   return (
@@ -3835,7 +3835,7 @@ function RadioOption(props) {
 
 然后是父组件，不仅需要把它所有的子组件显示出来，还需要为每个子组件赋上name属性和值：
 
-```
+```tsx
 //父组件用,props是指父组件的props
 function renderChildren(props) {
     
@@ -3884,7 +3884,7 @@ React的状态提升就是用户对子组件操作，子组件不改变自己的
 
 一个简单的例子，父组件中有两个input子组件，如果想在第一个输入框输入数据，来改变第二个输入框的值，这就需要用到状态提升。
 
-```
+```tsx
 class Father extends React.Component {
     constructor(props) {
         super(props)
@@ -3951,7 +3951,7 @@ ReactDOM.render(
 
 getInitialState是ES5中的方法，如果使用createClass方法创建一个Component组件，可以自动调用它的getInitialState方法来获取初始化的State对象，
 
-```
+```tsx
 var APP = React.creatClass ({
   getInitialState() {
     return { 
@@ -3964,7 +3964,7 @@ var APP = React.creatClass ({
 
 React在ES6的实现中去掉了getInitialState这个hook函数，规定state在constructor中实现，如下：
 
-```
+```tsx
 Class App extends React.Component{
     constructor(props){
       super(props);
@@ -3979,7 +3979,7 @@ Class App extends React.Component{
 
 可以为应用程序的任何部分启用严格模式。例如：
 
-```
+```tsx
 import React from 'react';
 function ExampleApplication() {
   return (
@@ -4013,7 +4013,7 @@ function ExampleApplication() {
 
 **（1）遍历数组：map && forEach**
 
-```
+```tsx
 import React from 'react';
 
 class App extends React.Component {
@@ -4049,7 +4049,7 @@ class App extends React.Component {
 
 **（2）遍历对象：map && for in**
 
-```
+```tsx
 class App extends React.Component {
   render() {
     let obj = {
@@ -4124,7 +4124,7 @@ React 并不强制要求使用 JSX。当不想在构建环境中配置有关 JSX
 
 例如，用 JSX 编写的代码：
 
-```
+```tsx
 class Hello extends React.Component {
   render() {
     return <div>Hello {this.props.toWhat}</div>;
@@ -4138,7 +4138,7 @@ ReactDOM.render(
 
 可以编写为不使用 JSX 的代码：
 
-```
+```tsx
 class Hello extends React.Component {
   render() {
     return React.createElement('div', null, `Hello ${this.props.toWhat}`);
@@ -4240,7 +4240,7 @@ JSX 是一个 JavaScript 的语法扩展，或者说是一个类似于 XML 的 E
 
 其实 React 本身并不强制使用 JSX。在没有 JSX 的时候，React 实现一个组件依赖于使用 React.createElement 函数。代码如下：
 
-```
+```tsx
 class Hello extends React.Component {
   render() {
     return React.createElement(
@@ -4258,7 +4258,7 @@ ReactDOM.render(
 
 而 JSX 更像是一种语法糖，通过类似 XML 的描述方式，描写函数对象。在采用 JSX 之后，这段代码会这样写：
 
-```
+```tsx
 class Hello extends React.Component {
   render() {
     return <div>Hello {this.props.toWhat}</div>;
@@ -4308,7 +4308,7 @@ HOC 解决了这些问题，并且它们达成的效果也是一致的，同时�
 
 使用了装饰模式，高阶组件的运用：
 
-```
+```tsx
 function withWindowWidth(BaseComponent) {
   class DerivedClass extends React.Component {
     state = {
@@ -4339,7 +4339,7 @@ export default withWindowWidth(MyComponent);
 
 装饰模式的特点是不需要改变 被装饰对象 本身，而只是在外面套一个外壳接口。JavaScript 目前已经有了原生装饰器的提案，其用法如下：
 
-```
+```tsx
 @testable
    class MyTestableClass {
 }

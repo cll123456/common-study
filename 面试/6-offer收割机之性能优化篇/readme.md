@@ -141,7 +141,7 @@ CNAME（意为：别名）：在域名解析中，实际上解析出来的指定
 
 **代码实现：**
 
-```
+```ts
 <div class="container">
      <img src="loading.gif"  data-src="pic.png">
      <img src="loading.gif"  data-src="pic.png">
@@ -279,7 +279,7 @@ MDN中对`documentFragment`的解释：
 
 **函数防抖的实现：**
 
-```
+```ts
 function debounce(fn, wait) {
   var timer = null;
 
@@ -303,7 +303,7 @@ function debounce(fn, wait) {
 
 **函数节流的实现：**
 
-```
+```ts
 // 时间戳版
 function throttle(fn, delay) {
   var preTime = Date.now();
@@ -395,7 +395,7 @@ function throttle (fun, wait){
 
 首先我们**优化 Loader 的文件搜索范围**
 
-```
+```ts
 module.exports = {
   module: {
     rules: [
@@ -419,7 +419,7 @@ module.exports = {
 
 当然这样做还不够，还可以将 Babel 编译过的文件**缓存**起来，下次只需要编译更改过的代码文件即可，这样可以大幅度加快打包时间
 
-```
+```ts
 loader: 'babel-loader?cacheDirectory=true'
 ```
 
@@ -431,7 +431,7 @@ loader: 'babel-loader?cacheDirectory=true'
 
 **HappyPack 可以将 Loader 的同步执行转换为并行的**，这样就能充分利用系统资源来加快打包效率了
 
-```
+```ts
 module: {
   loaders: [
     {
@@ -457,7 +457,7 @@ plugins: [
 
 **DllPlugin 可以将特定的类库提前打包然后引入**。这种方式可以极大的减少打包类库的次数，只有当类库更新版本才有需要重新打包，并且也实现了将公共代码抽离成单独文件的优化方案。DllPlugin的使用方法如下：
 
-```
+```ts
 // 单独配置在一个文件中
 // webpack.dll.conf.js
 const path = require('path')
@@ -486,7 +486,7 @@ module.exports = {
 
 然后需要执行这个配置文件生成依赖文件，接下来需要使用 `DllReferencePlugin` 将依赖文件引入项目中
 
-```
+```ts
 // webpack.conf.js
 module.exports = {
   // ...省略其他配置
@@ -534,7 +534,7 @@ module.exports = {
 
 比如希望打包两个文件：
 
-```
+```ts
 // test.js
 export const a = 1
 // index.js
@@ -543,7 +543,7 @@ import { a } from './test.js'
 
 对于这种情况，打包出来的代码会类似这样：
 
-```
+```ts
 [
   /* 0 */
   function (module, exports, require) {
@@ -558,7 +558,7 @@ import { a } from './test.js'
 
 但是如果使用 Scope Hoisting ，代码就会尽可能的合并到一个函数中去，也就变成了这样的类似代码：
 
-```
+```ts
 [
   /* 0 */
   function (module, exports, require) {
@@ -569,7 +569,7 @@ import { a } from './test.js'
 
 这样的打包方式生成的代码明显比之前的少多了。如果在 Webpack4 中你希望开启这个功能，只需要启用 `optimization.concatenateModules` 就可以了：
 
-```
+```ts
 module.exports = {
   optimization: {
     concatenateModules: true
@@ -581,7 +581,7 @@ module.exports = {
 
 **Tree Shaking 可以实现删除项目中未被引用的代码**，比如：
 
-```
+```ts
 // test.js
 export const a = 1
 export const b = 2
