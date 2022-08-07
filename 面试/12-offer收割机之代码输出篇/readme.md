@@ -1447,7 +1447,7 @@ obj.method(fn, 1);
 **解析：**
 
 1. 第一次执行fn()，this指向window对象，输出10。
-2. 第二次执行arguments[0]()，相当于arguments调用方法，this指向arguments，而这里传了两个参数，故输出arguments长度为2。
+2. 第二次执行`arguments[0]()`，相当于arguments调用方法，this指向arguments，而这里传了两个参数，故输出arguments长度为2。
 
 ### 10. 代码输出结果
 
@@ -1661,9 +1661,6 @@ undefined
 3 
 undefined 
 3
-```
-
-```
 undefined 
 undefined 
 3 

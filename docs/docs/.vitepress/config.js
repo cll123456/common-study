@@ -52,8 +52,7 @@ module.exports = {
     // 上次编辑的日期
     lastUpdatedText: '上次更新',
     // 侧边栏
-    sidebar: slideBarJson
-
+    sidebar: slideBarJson,
   }
 
 };

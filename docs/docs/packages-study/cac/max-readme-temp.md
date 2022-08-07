@@ -26,7 +26,7 @@ This is a long description.
 
 ## Install
 
-This module depends upon a knowledge of [Markdown]().
+This module depends upon a knowledge of [Markdown](./cac.dialog.md).
 
 ```
 ```
