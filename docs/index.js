@@ -19,7 +19,7 @@ const isExitFirDir = (docsPath) => fs.existsSync(docsPath)
  * @param {*} index 索引
  * @param {*} title 一级标题
  */
-const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') => {
+const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md', assetsDirName = 'assets') => {
   // let dirName = 'vue3-analysis'
 
   // 拼接源码的路径
@@ -64,16 +64,16 @@ const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') 
         })
 
         // 判断是否存在静态资源文件asserts
-        const assertsPath = `${originPath}/${file}/asserts`
+        const assertsPath = `${originPath}/${file}/${assetsDirName}`
         if (fs.existsSync(assertsPath)) {
           // 建立目录
-          const subDirName = resolve(`./docs/${dirName}/${file}/asserts`)
+          const subDirName = resolve(`./docs/${dirName}/${file}/${assetsDirName}`)
           if (!isExitFirDir(subDirName)) {
             // 创建目录
             fs.mkdirSync(subDirName)
           }
           // 把里面的所有文件文件夹都copy到docs目录下面
-          copyAllFiles(assertsPath, `${docsPath}/${file}/asserts`)
+          copyAllFiles(assertsPath, `${docsPath}/${file}/${assetsDirName}`)
 
         }
       }
@@ -103,9 +103,9 @@ const autoGenrateSlidebarJson = (dirName, index, title, fileName = 'readme.md') 
 (() => {
   // 自动生成slidebar.json
   autoGenrateSlidebarJson('vue3-analysis', 0, 'vue3源码分析')
-  autoGenrateSlidebarJson('packages-study', 1, '源码阅读', 'index.md')
+  autoGenrateSlidebarJson('packages-study', 1, '源码阅读', 'index.md', 'asserts')
   autoGenrateSlidebarJson('面试', 2, '面试')
-
+  autoGenrateSlidebarJson('leetcodes', 3, 'leetcodes')
 })()
 
 
