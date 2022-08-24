@@ -41,7 +41,7 @@ function climbStairs(n: number): number {
 
 ## 结果分析
 
-![image-20220810150943346](.\assets\image-20220810150943346.png)
+![image-20220810150943346](./assets/image-20220810150943346.png)
 
 这样做肯定是没有问题的，但是如果数量很大，那么就容易超时
 
@@ -67,7 +67,7 @@ function climbStairs(n: number): number {
 
 ## 结果分析
 
-![image-20220810151235675](.\assets\image-20220810151235675.png)
+![image-20220810151235675](./assets/image-20220810151235675.png)
 
 这里使用了一个数组来进行存储数据，但是存储的数据量越大，占用的空间也越大。那么，咋们可以继续优化。
 
@@ -100,7 +100,7 @@ function climbStairs(n: number): number {
 
 ## 结果
 
-![image-20220810173000236](.\assets\image-20220810173000236.png)
+![image-20220810173000236](./assets/image-20220810173000236.png)
 
 
 
