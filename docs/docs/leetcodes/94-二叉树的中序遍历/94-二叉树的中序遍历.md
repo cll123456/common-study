@@ -76,4 +76,4 @@ function inorderTraversal(root: TreeNode | null): number[] {
 
 
 
-但是递归是会有会损耗性能哦。有没有不需要递归的方式呢？当然有，来看看迭代
+但是递归是会有会损耗性能哦。有没有不需要递归的方式呢？当然有，来看看迭代.
