@@ -24,5 +24,10 @@ module.exports = {
     quotes: ['error', 'single'], // 配置单引号的规则，如果不是单引号，报错
     semi: 'off', //  不需要使用分号；
     'react/react-in-jsx-scope': 'off' // 在jsx中不需要导入 react的包
+  },
+  settings: {
+    react: {
+      version: 'detect'
+    }
   }
 }

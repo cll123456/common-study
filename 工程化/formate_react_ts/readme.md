@@ -1,10 +1,8 @@
 ```diff
-{
- extends:[
+extends:[
  ...,
-  + 'prettier', // prettier
-  + 'plugin:prettier/recommended' // prettier推荐的配置
++ 'prettier', // prettier
++ 'plugin:prettier/recommended' // prettier推荐的配置
  ]
-}
 
 ```
