@@ -4,6 +4,7 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
+        "prepare": "husky install",
         "dev": "vite",
         "build": "tsc && vite build",
         "preview": "vite preview",
@@ -15,11 +16,14 @@
         "react-dom": "^18.2.0"
     },
     "devDependencies": {
+        "@commitlint/cli": "^17.4.2",
+        "@commitlint/config-conventional": "^17.4.2",
         "@types/react": "^18.0.27",
         "@types/react-dom": "^18.0.10",
         "@typescript-eslint/eslint-plugin": "^5.50.0",
         "@typescript-eslint/parser": "^5.50.0",
         "@vitejs/plugin-react": "^3.1.0",
+        "commitlint": "^17.4.2",
         "eslint": "^8.33.0",
         "eslint-config-prettier": "^8.6.0",
         "eslint-plugin-prettier": "^4.2.1",
