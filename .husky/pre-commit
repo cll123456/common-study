@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
+cd ./工程化/formate_react_ts/
 
-# npm run lint
+npm run lint
