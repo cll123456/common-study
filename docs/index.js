@@ -1,15 +1,14 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const resolve = (dirname) => path.resolve(__dirname, dirname);
+const resolve = dirname => path.resolve(__dirname, dirname)
 
 /**
  * 是否存在目录
- * @param {*} docsPath 
- * @returns 
+ * @param {*} docsPath
+ * @returns
  */
-const isExitFirDir = (docsPath) => fs.existsSync(docsPath)
-
+const isExitFirDir = docsPath => fs.existsSync(docsPath)
 
 // 读取指定目录下面的文件，来读取下一级的readme.md文件，然后将它移动到对应目录的下面，当作是docs的一个文件夹
 
@@ -74,7 +73,6 @@ const autoGenerateSidebarJson = (dirName, index, title, fileName = 'readme.md', 
                     }
                     // 把里面的所有文件文件夹都copy到docs目录下面
                     copyAllFiles(assertsPath, `${docsPath}/${file}/${assetsDirName}`)
-
                 }
             }
         }
@@ -88,26 +86,22 @@ const autoGenerateSidebarJson = (dirName, index, title, fileName = 'readme.md', 
         return Number(aText) > Number(bText) ? 1 : -1
     })
 
-
     // 在slidebar.json写入sidebarItems
     const slideBarJson = require('./docs/slidebar.json')
     slideBarJson[index].items = sidebarItems
-    slideBarJson[index].collapsible = true;
-    slideBarJson[index].title = title
+    slideBarJson[index].collapsed = false
+    slideBarJson[index].text = title
     fs.writeFileSync(resolve(`./docs/slidebar.json`), JSON.stringify(slideBarJson))
 }
 
-
-
-
-(() => {
+;(() => {
     // 自动生成sidebar.json
     autoGenerateSidebarJson('vue3-analysis', 0, 'vue3源码分析')
     autoGenerateSidebarJson('packages-study', 1, '源码阅读', 'index.md', 'asserts')
     autoGenerateSidebarJson('面试', 2, '面试')
     autoGenerateSidebarJson('leetcodes', 3, 'leetcodes')
+    autoGenerateSidebarJson('工程化', 4, '前端工程化')
 })()
-
 
 // node 递归拷贝所有的文件和文件夹
 function copyAllFiles(dirPath, targetPath) {

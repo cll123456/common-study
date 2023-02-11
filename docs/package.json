@@ -1,29 +1,29 @@
 {
-  "name": "docs",
-  "version": "1.0.0",
-  "description": "common study docs",
-  "main": "index.js",
-  "scripts": {
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:serve": "vitepress serve docs",
-    "deploy": "node ./index.js & deploy.sh"
-  },
-  "keywords": [],
-  "author": "twinkle",
-  "license": "ISC",
-  "devDependencies": {
-    "vitepress": "1.0.0-alpha.4",
-    "vue": "^3.2.37"
-  },
-  "pnpm": {
-    "peerDependencyRules": {
-      "ignoreMissing": [
-        "@algolia/client-search",
-        "react",
-        "react-dom",
-        "@types/react"
-      ]
+    "name": "docs",
+    "version": "1.0.0",
+    "description": "common study docs",
+    "main": "index.js",
+    "scripts": {
+        "docs:dev": "vitepress dev docs",
+        "docs:build": "vitepress build docs",
+        "docs:serve": "vitepress serve docs",
+        "deploy": "node ./index.js & deploy.sh"
+    },
+    "keywords": [],
+    "author": "twinkle",
+    "license": "ISC",
+    "devDependencies": {
+        "vitepress": "1.0.0-alpha.45",
+        "vue": "^3.2.47"
+    },
+    "pnpm": {
+        "peerDependencyRules": {
+            "ignoreMissing": [
+                "@algolia/client-search",
+                "react",
+                "react-dom",
+                "@types/react"
+            ]
+        }
     }
-  }
 }
