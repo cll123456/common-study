@@ -173,7 +173,7 @@ pnpm i husky -D
 
 我们还需要生成`pre-commit`钩子的时候来执行`npm run lint`
 
-```TS
+```ts
 npx husky add .husky/pre-commit "npm run lint"  // 这句话的意思是说，在commit之前先执行 npm run lint脚本
 ```
 
