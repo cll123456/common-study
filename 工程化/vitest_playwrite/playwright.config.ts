@@ -6,7 +6,7 @@ const config: PlaywrightTestConfig = {
     timeout: 50000, // 每个测试最大的执行时间
     webServer: {
         url: 'http://localhost:5173', //在进行测试启动的本地服务
-        command: 'pnpm prepare:e2e' // 使用启动服务的脚本
+        command: 'pnpm dev' // 使用启动服务的脚本
     },
     use: {
         headless: true // 是否使用无头浏览器来进行测试
